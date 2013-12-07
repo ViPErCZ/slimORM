@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<dataset>
+	<table name="library">
+        <column>libraryID</column>
+		<column>name</column>
+        <row>
+            <value>1</value>
+            <value>Library 1</value>
+        </row>
+		<row>
+            <value>2</value>
+            <value>Library 2</value>
+        </row>
+    </table>
+    <table name="book">
+        <column>bookID</column>
+        <column>libraryID</column>
+        <column>name</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+            <value>PHP Programing</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>1</value>
+            <value>C++ Programing</value>
+        </row>
+        <row>
+            <value>3</value>
+            <value>1</value>
+            <value>The Road</value>
+        </row>
+        <row>
+            <value>4</value>
+            <value>2</value>
+            <value>Empire Falls</value>
+        </row>
+    </table>
+    <table name="author">
+        <column>authorID</column>
+        <column>bookID</column>
+        <column>name</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+            <value>Martin Chudoba</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>2</value>
+            <value>Martin Chudoba</value>
+        </row>
+    </table>
+    <table name="librarian">
+        <column>librarianID</column>
+        <column>libraryID</column>
+        <column>name</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+            <value>Librarian 1</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>2</value>
+            <value>Librarian 2</value>
+        </row>
+    </table>
+</dataset>

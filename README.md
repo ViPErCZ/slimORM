@@ -1,4 +1,4 @@
 slimORM
 =======
 
-orm simple expanding Nette \ databse
+orm simple expanding Nette\database

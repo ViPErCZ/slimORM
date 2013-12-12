@@ -25,14 +25,16 @@ class Library extends Entity {
 	protected $name;
 
 	/**
-	 * reference librarian
+	 * @reference librarian
+	 * @OneToOne(targetEntity="Model\Library\Entity\Librarian", mappedBy="libraryID")
 	 * @var Librarian
 	 */
 	protected $librarian;
 
 	/**
 	 * @reference book
-	 * @var Book
+	 * @OneToMany(targetEntity="Model\Library\Entity\Book", mappedBy="libraryID")
+	 * @var array
 	 */
 	protected $books;
 
@@ -41,15 +43,9 @@ class Library extends Entity {
 	 * @return $this
 	 */
 	public function addBook(Book $books) {
+		$books->setLibrary($this);
 		$this->books[] = $books;
 		return $this;
-	}
-
-	/**
-	 * @return array of Book entity
-	 */
-	public function getBooks() {
-		return $this->oneToMany("books", "book", "libraryID", "Model\Library\Entity\Book");
 	}
 
 	/**

@@ -8,6 +8,7 @@
 namespace Model\Library\Entity;
 
 
+use Model\Contact\Entity\Contact;
 use slimORM\Entity\Entity;
 
 class Author extends Entity {
@@ -25,10 +26,43 @@ class Author extends Entity {
 	protected $name;
 
 	/**
+	 * @column
+	 * @var int
+	 */
+	protected $bookID;
+
+	/**
+	 * @column
+	 * @var int
+	 */
+	protected $languageID;
+
+	/**
+	 * @column
+	 * @var int
+	 */
+	protected $contactID;
+
+	/**
 	 * @reference book
+	 * @OneToOne(targetEntity="Model\Library\Entity\Book", mappedBy="bookID")
 	 * @var Book
 	 */
 	protected $book;
+
+	/**
+	 * @reference language
+	 * @OneToOne(targetEntity="Model\Library\Entity\Language", mappedBy="languageID")
+	 * @var Language
+	 */
+	protected $language;
+
+	/**
+	 * @reference contact
+	 * @OneToOne(targetEntity="Model\Contact\Entity\Contact", mappedBy="contactID", canBeNULL=TRUE)
+	 * @var \Model\Contact\Entity\Contact
+	 */
+	protected $contact;
 
 	/**
 	 * @param int $authorID
@@ -55,10 +89,17 @@ class Author extends Entity {
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Book
+	 * @param \Model\Library\Entity\Language $language
 	 */
-	public function getBook() {
-		return $this->oneToOne("book", "book", "bookID", '\Model\Library\Entity\Book');
+	public function setLanguage($language) {
+		$this->language = $language;
+	}
+
+	/**
+	 * @param \Model\Contact\Entity\Contact $contact
+	 */
+	public function setContact(Contact $contact) {
+		$this->contact = $contact;
 	}
 
 } 

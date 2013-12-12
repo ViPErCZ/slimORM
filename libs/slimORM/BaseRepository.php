@@ -4,9 +4,12 @@ namespace slimORM;
 
 use Nette\Database\Connection;
 use Nette\Database\Table\ActiveRow;
+use Nette\Database\Table\Selection;
+use Nette\Reflection\ClassType;
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 use slimORM\Exceptions\RepositoryException;
+use stdClass;
 
 /**
  * Description of BaseRepository
@@ -27,7 +30,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/** @var array */
 	protected $rows;
 
-	/** @var \Nette\Database\Table\Selection */
+	/** @var Selection */
 	protected $selection;
 
 	/** @var array of primary key values */
@@ -49,7 +52,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/** Sestavení SQL dotazu
 	 * 
 	 * @param Paginator $paginator
-	 * @return \Nette\Database\Table\Selection
+	 * @return Selection
 	 */
 	protected function buildSql(Paginator $paginator = NULL) {
 		$result = $this->database->table($this->table);
@@ -69,22 +72,20 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	protected function createEntity(ActiveRow $row, $refresh = FALSE) {
 		$primary = $row->getPrimary();
-		$endEntity = NULL;
 		if (is_string($primary)) {
 			if ($refresh) {
-				$endEntity = new $this->entity($this->buildSql()->get($primary));
+				$this->rows[$primary] = new $this->entity($this->buildSql()->get($primary));
 			} else {
-				$endEntity = new $this->entity($row);
+				$this->rows[$primary] = new $this->entity($row);
 			}
-			$this->rows[$primary] = $endEntity;
 		} else {
-			throw new RepositoryException("Table \"$this->table\" has no primary key.");
+			throw new RepositoryException("Table \"" . self::TABLE . "\" does not have a primary key.");
 		}
 
-		return $endEntity;
+		return $this->rows[$primary];
 	}
 
-	/** Vrací poslední vložené ID
+	/** Return last insert ID
 	 * 
 	 * @return int|null
 	 * @throws RepositoryException
@@ -102,7 +103,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Najde položku podle primárního klíče
+	/** Find item by primary key
 	 * 
 	 * @param int $key
 	 * @return Entity|null
@@ -248,7 +249,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return $return;
 	}
 
-	/** Odešle se SQL
+	/** Returns all rows
 	 * 
 	 * @return array|NULL
 	 */
@@ -277,7 +278,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return current($this->rows);
 	}
 
-	/** Vytvoří select
+	/** Create new Selection
 	 * 
 	 * @param Paginator $paginator
 	 * @return BaseRepository
@@ -310,7 +311,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Uloží entitu
+	/** Save Entity
 	 *
 	 * @param boolean $needTransaction
 	 * @param Entity $entity
@@ -323,7 +324,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$this->database->beginTransaction();
 			if ($entity) {
 				if ($entity->toRow()) {
-					$entity->__update();
+					$this->update($entity);
 					if ($needTransaction)
 						$this->database->commit();
 					return $entity;
@@ -337,7 +338,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				if (is_array($this->rows)) {
 					foreach ($this->rows as $key => $row) {
 						if ($row->toRow()) {
-							$row->__update();
+							$this->update($row);
 						} else {
 							$returnEntity = $this->insert($row);
 							unset($this->rows[$key]);
@@ -356,7 +357,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Vloží entitu do pole
+	/** Push entity to array
 	 * @param Entity $entity
 	 */
 	public function push(Entity $entity) {
@@ -369,14 +370,265 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 
 	/**
 	 * 
-	 * @return NULL|\Nette\Database\Table\Selection
+	 * @return NULL|Selection
 	 */
 	public function getSelection() {
 		return $this->selection;
 	}
 
-	/** Abstraktní metody */
-	abstract protected function insert(Entity $entity);
+	/** Update entity
+	 * @param Entity $entity
+	 */
+	protected function update(Entity $entity) {
+		$this->updateActiveRow($entity);
+		$this->referencesUpdate($entity, $entity->toRow()->getPrimary(TRUE), $entity->getReferences());
+	}
+
+	/** Update ActiveRow in current Entity
+	 * @param Entity $entity
+	 */
+	private function updateActiveRow(Entity $entity) {
+		$reflection = ClassType::from(get_class($entity));
+		foreach ($reflection->getProperties() as $property) {
+			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
+				$name = $property->getName();
+				if ($entity->toRow()->$name != $entity->$name) {
+					$entity->toRow()->$name = $entity->$name;
+				}
+			}
+		}
+		$entity->toRow()->update();
+	}
+
+	/** Recursive references update
+	 * @param Entity $entity
+	 * @param int $primaryKey Primary key value
+	 * @param array $references
+	 * @param Entity $parent
+	 * @throws \ReflectionException
+	 */
+	private function referencesUpdate(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
+		foreach ($references as $reference) {
+			//echo $reference->targetEntity . " <=> " . get_class($parent) . "\n";
+			if ($parent && $reference->targetEntity === get_class($parent)) {
+				continue;
+			}
+			$name = $reference->property;
+			$mappedBy = $reference->key;
+			if (is_array($entity->$name)) {
+				foreach ($entity->$name as $refEntity) {
+					if ($refEntity->toRow()) {
+						$this->updateActiveRow($refEntity);
+						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
+					} else {
+						if (get_class($refEntity) == $reference->targetEntity) {
+							$refEntity->$mappedBy = $primaryKey;
+							$table = $reference->table;
+							$row = $this->database->table($table)->insert($refEntity->toArray());
+							$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
+						} else { //many to many
+							$this->manyToManyPreCrete($entity, $refEntity, $primaryKey, $reference);
+						}
+					}
+				}
+			} else {
+				$refEntity = $entity->$name;
+				if ($refEntity) {
+					if ($refEntity->toRow()) {
+						$this->updateActiveRow($refEntity);
+						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
+					} else {
+						$refEntity->$mappedBy = $primaryKey;
+						$table = $reference->table;
+						$row = $this->database->table($table)->insert($refEntity->toArray());
+						$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * pre create many to many linkage
+	 * @param Entity $entity parent entity
+	 * @param Entity $refEntity current reference entity
+	 * @param $primaryKey
+	 * @param stdClass $reference
+	 * @throws \ReflectionException
+	 */
+	private function manyToManyPreCrete(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
+		$name = $reference->property;
+		$reflection = ClassType::from(get_class($entity));
+		$property = $reflection->getProperty($name);
+		if ($property->hasAnnotation("var")) {
+			$extendEntityClass = $property->getAnnotation("var");
+			$extendEntity = new $extendEntityClass();
+			$table = $this->getTableFromEntityClass($extendEntity, get_class($refEntity));
+			$exRow = $this->database->table($table)->insert($refEntity->toArray());
+			foreach ($extendEntity->getColumns() as $column) {
+				$extendEntity->$column = array_search($column, $entity->getColumns()) !== FALSE ? $primaryKey : $exRow->$column;
+			}
+			$this->database->table($reference->table)->insert($extendEntity->toArray());
+		} else {
+			throw new \ReflectionException("Property ". get_class($entity) . "::$name\" has no set var annotation.");
+		}
+	}
+
+	/**
+	 * Insert entity to database
+	 * @param Entity $entity
+	 * @return Entity
+	 */
+	protected function insert(Entity $entity) {
+		$this->beforeCheckedReferences($entity);
+		$row = $this->buildSql()->insert($entity->toArray());
+		$primaryKey = $row->getPrimary();
+		$references = $entity->getReferences();
+		$this->resourcesInsert($entity, $primaryKey, $references);
+		$newEntity = $this->createEntity($row, TRUE);
+		return $newEntity;
+	}
+
+	/**
+	 * @param Entity $entity
+	 * @throws Exceptions\RepositoryException
+	 */
+	private function beforeCheckedReferences(Entity &$entity) {
+		$references = $entity->getReferences();
+		foreach ($references as $reference) {
+			$name = $reference->property;
+			$mappedBy = $reference->key;
+
+			if (!is_array($entity->$name) && $entity->$name !== NULL && $reference->linkage == "OneToOne") {
+				$refEntity = $entity->$name;
+				if ($reference->canBeNULL === FALSE && $mappedBy == $this->database->table($reference->table)->getPrimary()) {
+					throw new RepositoryException("Property " . $reference->targetEntity . ":" . $mappedBy . " cannot be NULL.");
+				} else {
+					//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";;
+					if ($entity->$mappedBy !== NULL) { //mapped property set directly
+						break;
+					} else if ($refEntity->toRow() === NULL) {
+						$entity->$mappedBy = $this->recRevertInsert($refEntity, $reference, $name, $entity);
+						$entity->$name = NULL;
+					}
+				}
+			}
+		}
+	}
+
+	/** Recursive insert
+	 * @param Entity $entity
+	 * @param $primaryKey
+	 * @param array $references
+	 * @param Entity $parent
+	 * @throws Exceptions\RepositoryException
+	 * @throws \ReflectionException
+	 */
+	private function resourcesInsert(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
+		foreach ($references as $reference) {
+			//echo "\n" . $reference->targetEntity . " <=> " . get_class($parent) . "\n";
+			if ($parent && $reference->targetEntity === get_class($parent)) {
+				continue;
+			} else {
+				$name = $reference->property;
+				$mappedBy = $reference->key;
+				if (is_array($entity->$name)) {
+					foreach ($entity->$name as $refEntity) {
+						if (get_class($refEntity) == $reference->targetEntity) {
+							$refEntity->$mappedBy = $primaryKey;
+							if ($refEntity->toRow()) {
+								$this->update($refEntity);
+							} else {
+								$row = $this->database->table($reference->table)->insert($refEntity->toArray());
+								$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
+							}
+						} else { //many to many
+							$this->manyToManyPreCrete($entity, $refEntity, $primaryKey, $reference);
+						}
+					}
+				} else {
+					$refEntity = $entity->$name;
+					if ($refEntity) {
+						$refEntity->$mappedBy = $primaryKey;
+						$refEntityReferences = $refEntity->getReferences();
+
+						/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
+						$refEntity = $this->beforeInsert($entity, $refEntityReferences, $name);
+
+						$row = $this->database->table($reference->table)->insert($refEntity->toArray());
+						$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntityReferences, $entity);
+					}
+				}
+			}
+		}
+	}
+
+	/** Check before inserting
+	 * @param Entity $entity
+	 * @param array $references referenced array
+	 * @param string $name
+	 * @return Entity
+	 * @throws Exceptions\RepositoryException
+	 */
+	private function beforeInsert(Entity $entity, &$references, $name) {
+		$refEntity = $entity->$name;
+		/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
+		foreach ($references as $key => $ref) {
+			if ($ref->linkage == "OneToOne" && $ref->targetEntity != get_class($entity)) {
+				//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";
+				$refMappedBy = $ref->key;
+				$refName = $ref->property;
+				if ($refEntity->$refMappedBy !== NULL) { //mapped property set directly
+					break;
+				} else if ($refEntity->$refName) {
+					if ($refEntity->$refName->toRow() || $refEntity->$refName->$refMappedBy !== NULL) {
+						$this->update($refEntity->$refName);
+					} else {
+						$refEntity->$refMappedBy = $this->recRevertInsert($refEntity->$refName, $ref, $refName, $refEntity);
+						$refEntity->$refName->$refMappedBy = $refEntity->$refMappedBy;
+					}
+					unset($references[$key]);
+				} else if ($ref->canBeNULL === FALSE) {
+					throw new RepositoryException("Property " . $ref->targetEntity . ":" . $refMappedBy . " cannot be NULL.");
+				}
+			}
+		}
+		return $refEntity;
+	}
+
+	/**
+	 * Get Table name by class name and instance of Entity
+	 * @param Entity $entity
+	 * @param $class
+	 * @return NULL|string
+	 */
+	private function getTableFromEntityClass(Entity $entity, $class) {
+		$references = $entity->getReferences();
+		foreach ($references as $ref) {
+			if ($ref->targetEntity == $class) {
+				return $ref->table;
+			}
+		}
+		return NULL;
+	}
+
+	/**
+	 * @param Entity $entity
+	 * @param stdClass $reference
+	 * @param string $name
+	 * @param Entity $parent
+	 * @return mixed
+	 */
+	private function recRevertInsert(Entity $entity, $reference, $name, Entity $parent) {
+		//echo "\nBefore: " . $name;
+		$refReferences = $entity->getReferences();
+		$entity = $this->beforeInsert($parent, $refReferences, $name);
+		/*echo "\nAfter before insert: " . $name . "\n";
+		var_dump($entity->toArray());*/
+		$row = $this->database->table($reference->table)->insert($entity->toArray());
+		$this->resourcesInsert($entity, $row->getPrimary(), $refReferences, $entity);
+		return $row->getPrimary();
+	}
 
 
 	/*	 * ******************* interface \IteratorAggregate *****************  */

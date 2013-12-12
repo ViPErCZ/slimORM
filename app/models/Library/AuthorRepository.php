@@ -10,7 +10,6 @@ namespace Model\Library;
 
 use Nette\Database\Connection;
 use slimORM\BaseRepository;
-use slimORM\Entity\Entity;
 
 class AuthorRepository extends BaseRepository {
 
@@ -22,9 +21,5 @@ class AuthorRepository extends BaseRepository {
 	 */
 	public function __construct(Connection $database) {
 		parent::__construct($database, AuthorRepository::TABLE, AuthorRepository::ENTITY);
-	}
-
-	protected function insert(Entity $entity) {
-
 	}
 } 

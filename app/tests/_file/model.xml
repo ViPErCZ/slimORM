@@ -37,11 +37,57 @@
             <value>Empire Falls</value>
         </row>
     </table>
+    <table name="attachment">
+        <column>attachmentID</column>
+        <column>name</column>
+        <row>
+            <value>1</value>
+            <value>CD</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>DVD</value>
+        </row>
+        <row>
+            <value>3</value>
+            <value>Phone List</value>
+        </row>
+    </table>
+    <table name="book_has_attachment">
+        <column>bookID</column>
+        <column>attachmentID</column>
+        <row>
+            <value>1</value>
+            <value>1</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>1</value>
+        </row>
+        <row>
+            <value>3</value>
+            <value>3</value>
+        </row>
+    </table>
+    <table name="language">
+        <column>languageID</column>
+        <column>lang</column>
+        <row>
+            <value>1</value>
+            <value>cz</value>
+        </row>
+        <row>
+            <value>2</value>
+            <value>en</value>
+        </row>
+    </table>
     <table name="author">
         <column>authorID</column>
         <column>bookID</column>
+        <column>languageID</column>
         <column>name</column>
         <row>
+            <value>1</value>
             <value>1</value>
             <value>1</value>
             <value>Martin Chudoba</value>
@@ -49,6 +95,7 @@
         <row>
             <value>2</value>
             <value>2</value>
+            <value>1</value>
             <value>Martin Chudoba</value>
         </row>
     </table>

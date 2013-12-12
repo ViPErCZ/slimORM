@@ -25,16 +25,31 @@ class Book extends Entity {
 	protected $name;
 
 	/**
+	 * @column
+	 * @var int
+	 */
+	protected $libraryID;
+
+	/**
 	 * @reference author
+	 * @OneToOne(targetEntity="Model\Library\Entity\Author", mappedBy="bookID")
 	 * @var Author
 	 */
 	protected $author;
 
 	/**
 	 * @reference library
+	 * @ManyToOne(targetEntity="Model\Library\Entity\Library", mappedBy="libraryID")
 	 * @var Library
 	 */
 	protected $library;
+
+	/**
+	 * @reference book_has_attachment
+	 * @ManyToMany(targetEntity="Model\Library\Entity\BookAttachment", mappedBy="bookID")
+	 * @var \Model\Library\Entity\BookAttachment
+	 */
+	protected $attachments;
 
 	/**
 	 * @param Author $author
@@ -58,6 +73,9 @@ class Book extends Entity {
 	public function setLibrary(Library $library)
 	{
 		$this->library = $library;
+		if ($this->library->toRow()) {
+			$this->libraryID = $library->libraryID;
+		}
 	}
 
 	/**
@@ -69,17 +87,10 @@ class Book extends Entity {
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Author
+	 * @param Attachment $attach
 	 */
-	public function getAuthor() {
-		return $this->manyToOne("author", "author", "bookID", 'Model\Library\Entity\Author');
-	}
-
-	/**
-	 * @return \Model\Library\Entity\Library
-	 */
-	public function getLibrary() {
-		return $this->manyToOne("library", "library", "libraryID", '\Model\Library\Entity\Library');
+	public function addAttachment(Attachment $attach) {
+		$this->attachments[] = $attach;
 	}
 
 } 

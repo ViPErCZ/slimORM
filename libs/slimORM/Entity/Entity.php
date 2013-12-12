@@ -17,11 +17,15 @@ abstract class Entity extends Object {
 	/** @var ActiveRow */
 	protected $row;
 
+	/** @var array */
+	private $references;
+
 	/** Konstruktor
 	 * 
 	 * @param ActiveRow $row
 	 */
 	public function __construct(ActiveRow $row = NULL) {
+		$this->references = array();
 		$this->row = $row;
 		if ($this->row)
 			$this->evaluated();
@@ -32,6 +36,61 @@ abstract class Entity extends Object {
 	 */
 	final public function toRow() {
 		return $this->row;
+	}
+
+	/**
+	 * Vrací reference a jejich parametry
+	 * @throws \Model\Base\Entity\Exceptions\EntityException
+	 * @return array
+	 */
+	final public function getReferences() {
+		if (count($this->references) == 0) {
+			$reflection = ClassType::from(get_class($this));
+
+			foreach ($reflection->getProperties() as $property) {
+				if ($property->hasAnnotation("reference") === TRUE) {
+					$ref = new \stdClass();
+					$ref->property = $property->getName();
+					$args = $property->getAnnotation("reference");
+					if (is_string($args)) {
+						$ref->table = $args;
+					} else {
+						$ref->table = $ref->property;
+					}
+
+					if ($property->hasAnnotation("OneToOne") === TRUE) {
+						$ref->linkage = "OneToOne";
+						$linkage = $property->getAnnotation("OneToOne");
+						$ref->targetEntity = $linkage->targetEntity;
+						$ref->key = $linkage->mappedBy;
+						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
+					} elseif ($property->hasAnnotation("OneToMany") === TRUE) {
+						$ref->linkage = "OneToMany";
+						$linkage = $property->getAnnotation("OneToMany");
+						$ref->targetEntity = $linkage->targetEntity;
+						$ref->key = $linkage->mappedBy;
+						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
+					} elseif ($property->hasAnnotation("ManyToOne") === TRUE) {
+						$ref->linkage = "ManyToOne";
+						$linkage = $property->getAnnotation("ManyToOne");
+						$ref->targetEntity = $linkage->targetEntity;
+						$ref->key = $linkage->mappedBy;
+						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
+					} elseif ($property->hasAnnotation("ManyToMany") === TRUE) {
+						$ref->linkage = "ManyToMany";
+						$linkage = $property->getAnnotation("ManyToMany");
+						$ref->targetEntity = $linkage->targetEntity;
+						$ref->key = $linkage->mappedBy;
+						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
+					} else {
+						throw new EntityException("Reference \"". $this->getReflection() . "::$ref->property\" has no set linkage annotation type.");
+					}
+
+					$this->references[$ref->property] = $ref;
+				}
+			}
+		}
+		return $this->references;
 	}
 	
 	/**
@@ -46,17 +105,21 @@ abstract class Entity extends Object {
 		if ($this->$propertyName === NULL && $this->row) {
 			$items = $this->row->related($table, $relatedKey);
 		
-			if ($items->count() > 0) {
+			if ($items->count('*') > 0) {
 				$this->$propertyName = $arr = array();
 				foreach($items as $item) {
-					$arr[$item->getPrimary()] = new $entityClass($item);
+					if (is_array($item->getPrimary())) {
+						$arr[] = new $entityClass($item);
+					} else {
+						$arr[$item->getPrimary()] = new $entityClass($item);
+					}
 				}
 				$this->$propertyName = $arr;
 			} else
 				$this->$propertyName = array();
 		} else if ($this->$propertyName === NULL && $this->row === NULL)
 			$this->$propertyName = array();
-		
+
 		return $this->$propertyName;
 	}
 	
@@ -95,6 +158,7 @@ abstract class Entity extends Object {
 	}
 
 	/**
+	 * Returns primary key value
 	 * @return mixed
 	 */
 	final public function getPrimary() {
@@ -130,75 +194,6 @@ abstract class Entity extends Object {
 		}
 	}
 
-	/** Update Entity
-	 * 
-	 * @throws EntityException
-	 */
-	final public function __update() {
-		if ($this->row) {
-			$this->updateActiveRow();
-			$this->row->update();
-			$reflection = ClassType::from(get_class($this));
-			foreach ($reflection->getProperties() as $property) {
-				if ($property->hasAnnotation("reference") === TRUE) {
-					$name = $property->getName();
-					if (is_array($this->$name)) {
-						foreach ($this->$name as $item) {
-							if ($item->toRow())
-								$item->__update();
-							else {
-								$table = $property->getAnnotation("reference");
-								if (is_string($table))
-									$this->__insert($table, $item);
-								else
-									throw new EntityException("Property \"reference\" has no table value.");
-							}
-						}
-					} else if ($this->$name) {
-						if ($this->$name->toRow())
-							$this->$name->__update();
-						else {
-							$table = $property->getAnnotation("reference");
-							if (is_string($table))
-								$this->__insert($table, $this->$name);
-							else
-								throw new EntityException("Property \"reference\" has no table value.");
-						}
-					}
-				}
-			}
-		}
-		else
-			throw new EntityException("Entity cannot update before reading.");
-	}
-
-	/** Insert
-	 * 
-	 * @param string $table
-	 * @param Entity $entity
-	 * @return ActiveRow
-	 */
-	final public function __insert($table, Entity $entity) {
-		return $this->row->getTable()->getConnection()->table((string)$table)->insert($entity->toArray());
-	}
-	
-	/**
-	 * 
-	 */
-	final protected function updateActiveRow() {
-		if ($this->row) {
-			$reflection = ClassType::from(get_class($this));
-			foreach ($reflection->getProperties() as $property) {
-				if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
-					$name = $property->getName();
-					if ($this->row->$name != $this->$name) {
-						$this->row->$name = $this->$name;
-					}
-				}
-			}
-		}
-	}
-
 	/**
 	 * @return array
 	 */
@@ -209,6 +204,20 @@ abstract class Entity extends Object {
 			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
 				$name = $property->getName();
 				$arr[$property->getName()] = $this->$name;
+			}
+		}
+		return $arr;
+	}
+
+	/**
+	 * @return array
+	 */
+	final public function getColumns() {
+		$reflection = ClassType::from(get_class($this));
+		$arr = array();
+		foreach ($reflection->getProperties() as $property) {
+			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
+				$arr[] = $property->getName();
 			}
 		}
 		return $arr;
@@ -235,7 +244,12 @@ abstract class Entity extends Object {
 	 * @param mixed $value property value
 	 */
 	public function __set($name, $value) {
-		ObjectMixin::set($this, $name, $value);
+		$rp = new \ReflectionProperty(get_class($this), $name);
+		if ($rp->getName() === $name) {
+			$this->$name = $value;
+		} else {
+			ObjectMixin::set($this, $name, $value);
+		}
 		if ($this->row !== NULL) {
 			$this->row->$name = $this->$name;
 		}
@@ -243,21 +257,57 @@ abstract class Entity extends Object {
 
 	/**
 	 * Returns property value. Do not call directly.
-	 * 
+	 *
 	 * @param string $name
+	 * @throws \Model\Base\Entity\Exceptions\EntityException
 	 * @return mixed
 	 */
 	public function &__get($name) {
-		try {
+		$references = $this->getReferences();
+		if (array_key_exists($name, $references) === TRUE && $this->row) {
+			switch($references[$name]->linkage) {
+				case 'OneToMany':
+					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+						$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					} else {
+						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					}
+					break;
+				case 'OneToOne':
+					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+						$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					} else {
+						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					}
+					break;
+				case 'ManyToOne':
+					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+						$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					} else {
+						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					}
+					break;
+				case 'ManyToMany':
+					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+						$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					} else {
+						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+					}
+					break;
+			}
+		} else {
 			$getter = "get".ucfirst($name);
 			$reflection = ClassType::from(get_class($this));
-			$reflection->getMethod($getter);
-			$val = $this->$getter();
-			return $val;
-		} catch (\ReflectionException $e) {
-			$val = $this->$name;
-			return $val;
+			if ($reflection->hasMethod($getter)) {
+				$reflection->getMethod($getter);
+				$val = $this->$getter();
+			} else if ($reflection->hasProperty($name)) {
+				$val = $this->$name;
+			} else {
+				throw new EntityException("Cannot read property " . get_class($this) . ":" . $name);
+			}
 		}
+		return $val;
 	}
 
 }

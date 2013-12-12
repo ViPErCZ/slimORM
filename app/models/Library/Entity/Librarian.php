@@ -25,7 +25,14 @@ class Librarian extends Entity {
 	protected $name;
 
 	/**
+	 * @column
+	 * @var int
+	 */
+	protected $libraryID;
+
+	/**
 	 * @reference library
+	 * @OneToOne(targetEntity="Model\Library\Entity\Library", mappedBy="libraryID")
 	 * @var Library
 	 */
 	protected $library;

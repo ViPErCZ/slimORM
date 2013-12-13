@@ -131,7 +131,7 @@ abstract class Entity extends Object {
 	 * @param string $entityClass
 	 * @return instance of $entityClass
 	 */
-	final protected function oneToOne($propertyName, $table, $referenceKey, $entityClass) {
+	final protected function &oneToOne($propertyName, $table, $referenceKey, $entityClass) {
 		if ($this->row) {
 			$row = $this->row->ref($table, $referenceKey);
 			if ($row)
@@ -147,7 +147,7 @@ abstract class Entity extends Object {
 	 * @param string $entityClass
 	 * @return instance of $entityClass
 	 */
-	final protected function manyToOne($propertyName, $table, $relatedKey, $entityClass) {
+	final protected function &manyToOne($propertyName, $table, $relatedKey, $entityClass) {
 		if ($this->row) {
 			$items = $this->row->related($table, $relatedKey);
 			if ($items->count() > 0) {
@@ -263,51 +263,51 @@ abstract class Entity extends Object {
 	 * @return mixed
 	 */
 	public function &__get($name) {
-		$references = $this->getReferences();
-		if (array_key_exists($name, $references) === TRUE && $this->row) {
-			switch($references[$name]->linkage) {
-				case 'OneToMany':
-					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-						$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					} else {
-						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+		$getter = "get".ucfirst($name);
+		$reflection = ClassType::from(get_class($this));
+		if ($reflection->hasMethod($getter)) {
+			$reflection->getMethod($getter);
+			$val = $this->$getter();
+			return $val;
+		} else if ($reflection->hasProperty($name)) {
+			$references = $this->getReferences();
+			if ($this->$name === NULL) {
+				if (array_key_exists($name, $references) === TRUE && $this->row) {
+					switch($references[$name]->linkage) {
+						case 'OneToMany':
+							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+								$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							} else {
+								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							}
+							break;
+						case 'OneToOne':
+							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+								$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							} else {
+								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							}
+							break;
+						case 'ManyToOne':
+							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+								$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							} else {
+								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							}
+							break;
+						case 'ManyToMany':
+							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+								$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							} else {
+								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+							}
+							break;
 					}
-					break;
-				case 'OneToOne':
-					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-						$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					} else {
-						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					}
-					break;
-				case 'ManyToOne':
-					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-						$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					} else {
-						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					}
-					break;
-				case 'ManyToMany':
-					if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-						$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					} else {
-						$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-					}
-					break;
-			}
-		} else {
-			$getter = "get".ucfirst($name);
-			$reflection = ClassType::from(get_class($this));
-			if ($reflection->hasMethod($getter)) {
-				$reflection->getMethod($getter);
-				$val = $this->$getter();
-			} else if ($reflection->hasProperty($name)) {
-				$val = $this->$name;
-			} else {
-				throw new EntityException("Cannot read property " . get_class($this) . ":" . $name);
+					$this->$name = $val;
+				}
 			}
 		}
-		return $val;
+		return $this->$name;
 	}
 
 }

@@ -381,7 +381,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	protected function update(Entity $entity) {
 		$this->updateActiveRow($entity);
-		$this->referencesUpdate($entity, $entity->toRow()->getPrimary(TRUE), $entity->getReferences());
+		$primaryKey = (int)$entity->toRow()->getPrimary(TRUE);
+		$this->referencesUpdate($entity, $primaryKey, $entity->getReferences());
 	}
 
 	/** Update ActiveRow in current Entity
@@ -501,7 +502,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 
 			if (!is_array($entity->$name) && $entity->$name !== NULL && $reference->linkage == "OneToOne") {
 				$refEntity = $entity->$name;
-				if ($reference->canBeNULL === FALSE && $mappedBy == $this->database->table($reference->table)->getPrimary()) {
+				if ($reference->canBeNULL === FALSE && $mappedBy == $this->database->table($reference->table)->getPrimary()
+					&& get_class($entity) == get_class($refEntity)) {
 					throw new RepositoryException("Property " . $reference->targetEntity . ":" . $mappedBy . " cannot be NULL.");
 				} else {
 					//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";;

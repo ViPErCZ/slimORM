@@ -2,7 +2,7 @@
 /**
  * My Application bootstrap file.
  */
-use Nette\Application\Routers\Route;
+/*use Nette\Application\Routers\Route;
 
 // Load Nette Framework
 require LIBS_DIR . '/Nette/nette.min.php';
@@ -41,4 +41,22 @@ if (PHP_SAPI == 'cli' && !isset($phpUnitTest)) {
 	exit();
 } else if (!isset($phpUnitTest)) {
 	$container->application->run();
-}
+}*/
+
+// Load Nette Framework
+require LIBS_DIR . '/Nette/nette.phar';
+
+$configurator = new Nette\Configurator;
+$configurator->enableDebugger(__DIR__ . '/../log');
+$configurator->setTempDirectory(__DIR__ . '/../temp');
+$configurator->createRobotLoader()
+	->addDirectory(APP_DIR)
+	->addDirectory(LIBS_DIR)
+	->register();
+
+$configurator->addConfig(__DIR__ . '/config/config.neon');
+//$configurator->addConfig(__DIR__ . '/config/config.local.neon');
+
+$container = $configurator->createContainer();
+
+return $container;

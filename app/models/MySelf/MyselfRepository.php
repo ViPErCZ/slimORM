@@ -8,7 +8,7 @@
 namespace Model\MySelf;
 
 
-use Nette\Database\Connection;
+use Nette\Database\Context;
 use slimORM\BaseRepository;
 
 class MyselfRepository extends BaseRepository {
@@ -18,9 +18,9 @@ class MyselfRepository extends BaseRepository {
 
 	/**
 	 * Construct
-	 * @param Connection $connection
+	 * @param Context $connection
 	 */
-	public function __construct(Connection $connection) {
+	public function __construct(Context $connection) {
 		parent::__construct($connection, MyselfRepository::TABLE, MyselfRepository::ENTITY);
 	}
 } 

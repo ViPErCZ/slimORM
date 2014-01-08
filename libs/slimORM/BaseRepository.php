@@ -2,7 +2,7 @@
 
 namespace slimORM;
 
-use Nette\Database\Connection;
+use Nette\Database\Context;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
 use Nette\Reflection\ClassType;
@@ -18,7 +18,7 @@ use stdClass;
  */
 abstract class BaseRepository implements \IteratorAggregate, \Countable {
 
-	/** @var Connection */
+	/** @var Context */
 	protected $database;
 
 	/** @var string */
@@ -37,12 +37,12 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	protected $keys = array();
 
 	/** Konstruktor
-	 * 
-	 * @param Connection $connection
+	 *
+	 * @param \Nette\Database\Context $connection
 	 * @param string $tableName
 	 * @param string $entity
 	 */
-	public function __construct(Connection $connection, $tableName, $entity) {
+	public function __construct(Context $connection, $tableName, $entity) {
 		$this->database = $connection;
 		$this->table = (string) $tableName;
 		$this->entity = (string) $entity;
@@ -72,7 +72,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	protected function createEntity(ActiveRow $row, $refresh = FALSE) {
 		$primary = $row->getPrimary();
-		if (is_string($primary)) {
+		if (is_int($primary)) {
 			if ($refresh) {
 				$this->rows[$primary] = new $this->entity($this->buildSql()->get($primary));
 			} else {
@@ -390,15 +390,16 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	private function updateActiveRow(Entity $entity) {
 		$reflection = ClassType::from(get_class($entity));
+		$record = array();
 		foreach ($reflection->getProperties() as $property) {
 			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
 				$name = $property->getName();
 				if ($entity->toRow()->$name != $entity->$name) {
-					$entity->toRow()->$name = $entity->$name;
+					$record[$name] = $entity->$name;
 				}
 			}
 		}
-		$entity->toRow()->update();
+		$entity->toRow()->update($record);
 	}
 
 	/** Recursive references update

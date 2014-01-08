@@ -18,5 +18,10 @@ define('TEMP_DIR', APP_DIR . '/temp');
 // absolute filesystem path to the log
 define('LOGS_DIR', WWW_DIR.'/log');
 
-// load bootstrap file
-require APP_DIR . '/bootstrap.php';
+$container = require __DIR__ . '/app/bootstrap.php';
+
+if (PHP_SAPI == 'cli' && !isset($phpUnitTest)) {
+	exit();
+} else if (!isset($phpUnitTest)) {
+	$container->getService('application')->run();
+}

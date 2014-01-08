@@ -32,7 +32,7 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	 */
 	protected function getConnection() {
 		$this->database = $this->context->database;
-		return $this->createDefaultDBConnection($this->database, $this->context->parameters['database']['dbname']);
+		return $this->createDefaultDBConnection($this->database->getConnection()->getPdo(), $this->context->parameters['database']['dbname']);
 	}
 	
 	/** Abstract metod declaration ************************* */

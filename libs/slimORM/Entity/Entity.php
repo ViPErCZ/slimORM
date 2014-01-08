@@ -250,9 +250,9 @@ abstract class Entity extends Object {
 		} else {
 			ObjectMixin::set($this, $name, $value);
 		}
-		if ($this->row !== NULL) {
+		/*if ($this->row !== NULL) {
 			$this->row->$name = $this->$name;
-		}
+		}*/
 	}
 
 	/**

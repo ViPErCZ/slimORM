@@ -8,7 +8,7 @@
 namespace Model\Contact;
 
 
-use Nette\Database\Connection;
+use Nette\Database\Context;
 use slimORM\BaseRepository;
 
 class ContactRepository extends BaseRepository {
@@ -18,9 +18,9 @@ class ContactRepository extends BaseRepository {
 
 	/**
 	 * Constructor
-	 * @param Connection $connection
+	 * @param Context $connection
 	 */
-	public function __construct(Connection $connection) {
+	public function __construct(Context $connection) {
 		parent::__construct($connection, ContactRepository::TABLE, ContactRepository::ENTITY);
 	}
 } 

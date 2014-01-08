@@ -8,7 +8,7 @@
 namespace Model\Library;
 
 
-use Nette\Database\Connection;
+use Nette\Database\Context;
 use slimORM\BaseRepository;
 
 class AuthorRepository extends BaseRepository {
@@ -17,9 +17,9 @@ class AuthorRepository extends BaseRepository {
 	const ENTITY = 'Model\Library\Entity\Author';
 
 	/** Construct
-	 * @param Connection $database
+	 * @param Context $database
 	 */
-	public function __construct(Connection $database) {
+	public function __construct(Context $database) {
 		parent::__construct($database, AuthorRepository::TABLE, AuthorRepository::ENTITY);
 	}
 } 

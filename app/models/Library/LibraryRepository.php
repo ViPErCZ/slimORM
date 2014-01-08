@@ -8,11 +8,8 @@
 namespace Model\Library;
 
 
-use Model\Library\Entity\Library;
-use Nette\Database\Connection;
+use Nette\Database\Context;
 use slimORM\BaseRepository;
-use slimORM\Entity\Entity;
-use slimORM\Exceptions\RepositoryException;
 
 class LibraryRepository extends BaseRepository {
 
@@ -20,9 +17,9 @@ class LibraryRepository extends BaseRepository {
 	const ENTITY = 'Model\Library\Entity\Library';
 
 	/** Construct
-	 * @param Connection $database
+	 * @param \Nette\Database\Context $database
 	 */
-	public function __construct(Connection $database) {
+	public function __construct(Context $database) {
 		parent::__construct($database, LibraryRepository::TABLE, LibraryRepository::ENTITY);
 	}
 } 

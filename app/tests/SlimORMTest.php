@@ -422,7 +422,7 @@ class SlimORMTest extends BaseDbTest {
 		$child = $data->child;
 		$this->assertEquals($child->name, "Child item - updated");
 
-		$this->database->query("TRUNCATE TABLE myself")->execute();
+		$this->database->query("TRUNCATE TABLE myself");
 	}
 }
 

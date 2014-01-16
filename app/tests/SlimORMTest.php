@@ -37,9 +37,9 @@ class SlimORMTest extends BaseDbTest {
 		$library = $libraryRepository->get(1);
 		$books = $library->books;
 		$attachments = $books[1]->attachments;
-		$attachment = current($attachments);
-		$this->assertEquals($attachment->attachment->name, "CD");
-		$this->assertEquals($attachment->getName(), "CD");
+		$BookAttachment = current($attachments);
+		$this->assertEquals($BookAttachment->attachment->name, "CD");
+		$this->assertEquals($BookAttachment->getName(), "CD");
 	}
 
 	/** Read test

@@ -1,11 +1,11 @@
 <?php
 
 namespace slimORM\Entity;
-use Model\Base\Entity\Exceptions\EntityException;
 use Nette\Database\Table\ActiveRow;
 use Nette\Object;
 use Nette\ObjectMixin;
 use Nette\Reflection\ClassType;
+use slimORM\Entity\Exception\EntityException;
 
 /**
  * Základní třída pro entitu
@@ -38,12 +38,12 @@ abstract class Entity extends Object {
 		return $this->row;
 	}
 
-	/**
-	 * Vrací reference a jejich parametry
-	 * @throws \Model\Base\Entity\Exceptions\EntityException
-	 * @return array
-	 */
-	final public function getReferences() {
+    /**
+     * Vrací reference a jejich parametry
+     * @return array
+     * @throws Exception\EntityException
+     */
+    final public function getReferences() {
 		if (count($this->references) == 0) {
 			$reflection = ClassType::from(get_class($this));
 
@@ -165,12 +165,12 @@ abstract class Entity extends Object {
 		return $this->row ? $this->row->getPrimary() : NULL;
 	}
 
-	/** Nastaví hodnoty všem proměnným ze seznamu *read
-	 * 
-	 * @param array $values
-	 * @throws MemberAccessException
-	 */
-	final public function setValues(array $values) {
+	/**
+     * Nastaví hodnoty všem proměnným ze seznamu *read
+     * @param array $values
+     * @throws MemberAccessException
+     */
+    final public function setValues(array $values) {
 		if (is_array($values)) {
 			$class = get_class($this);
 			foreach (array_keys($this->toArray()) as $key) {
@@ -255,14 +255,12 @@ abstract class Entity extends Object {
 		}*/
 	}
 
-	/**
-	 * Returns property value. Do not call directly.
-	 *
-	 * @param string $name
-	 * @throws \Model\Base\Entity\Exceptions\EntityException
-	 * @return mixed
-	 */
-	public function &__get($name) {
+    /**
+     * Returns property value. Do not call directly.
+     * @param $name
+     * @return array|callable|null|instance
+     */
+    public function &__get($name) {
 		$getter = "get".ucfirst($name);
 		$reflection = ClassType::from(get_class($this));
 		if ($reflection->hasMethod($getter)) {
@@ -308,6 +306,14 @@ abstract class Entity extends Object {
 			}
 		}
 		return $this->$name;
+	}
+
+	/**
+	 * @param $name
+	 * @return bool
+	 */
+	public function __isset($name) {
+		return isset($this->$name);
 	}
 
 }

@@ -412,7 +412,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	private function referencesUpdate(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
 		foreach ($references as $reference) {
 			//echo $reference->targetEntity . " <=> " . get_class($parent) . "\n";
-			if ($parent && $reference->targetEntity === get_class($parent)) {
+			if ($parent && ($reference->targetEntity === get_class($parent) || $reference->targetEntity === '\\' . get_class($parent))) {
 				continue;
 			}
 			$name = $reference->property;

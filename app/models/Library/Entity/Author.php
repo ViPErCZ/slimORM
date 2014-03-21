@@ -11,6 +11,11 @@ namespace Model\Library\Entity;
 use Model\Contact\Entity\Contact;
 use slimORM\Entity\Entity;
 
+/**
+ * Class Author
+ * @table author
+ * @package Model\Library\Entity
+ */
 class Author extends Entity {
 
 	/**
@@ -100,6 +105,70 @@ class Author extends Entity {
 	 */
 	public function setContact(Contact $contact) {
 		$this->contact = $contact;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getAuthorID()
+	{
+		return $this->authorID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Book
+	 */
+	public function getBook()
+	{
+		return $this->book;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getBookID()
+	{
+		return $this->bookID;
+	}
+
+	/**
+	 * @return \Model\Contact\Entity\Contact
+	 */
+	public function getContact()
+	{
+		return $this->contact;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getContactID()
+	{
+		return $this->contactID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Language
+	 */
+	public function getLanguage()
+	{
+		return $this->language;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLanguageID()
+	{
+		return $this->languageID;
 	}
 
 } 

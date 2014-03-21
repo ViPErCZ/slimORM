@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Library
+ * @table library
+ * @package Model\Library\Entity
+ */
 class Library extends Entity {
 
 	/**
@@ -26,15 +31,15 @@ class Library extends Entity {
 
 	/**
 	 * @reference librarian
-	 * @OneToOne(targetEntity="Model\Library\Entity\Librarian", mappedBy="libraryID")
+	 * @OneToOne(targetEntity="\Model\Library\Entity\Librarian", mappedBy="libraryID")
 	 * @var Librarian
 	 */
 	protected $librarian;
 
 	/**
 	 * @reference book
-	 * @OneToMany(targetEntity="Model\Library\Entity\Book", mappedBy="libraryID")
-	 * @var array
+	 * @OneToMany(targetEntity="\Model\Library\Entity\Book", mappedBy="libraryID")
+	 * @var \Model\Library\Entity\Book[]
 	 */
 	protected $books;
 
@@ -73,6 +78,38 @@ class Library extends Entity {
 	public function setName($name) {
 		$this->name = (string)$name;
 		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Librarian
+	 */
+	public function getLibrarian()
+	{
+		return $this->librarian;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Book[]
+	 */
+	public function getBooks()
+	{
+		return $this->books;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLibraryID()
+	{
+		return $this->libraryID;
 	}
 
 } 

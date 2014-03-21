@@ -10,6 +10,11 @@ namespace Model\Contact\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Phone
+ * @table phone
+ * @package Model\Contact\Entity
+ */
 class Phone extends Entity {
 
 	/**
@@ -42,6 +47,38 @@ class Phone extends Entity {
 	 */
 	public function setNumber($number) {
 		$this->number = (string)$number;
+	}
+
+	/**
+	 * @return \Model\Contact\Entity\Contact
+	 */
+	public function getContact()
+	{
+		return $this->contact;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getContactID()
+	{
+		return $this->contactID;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getNumber()
+	{
+		return $this->number;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getPhoneID()
+	{
+		return $this->phoneID;
 	}
 
 } 

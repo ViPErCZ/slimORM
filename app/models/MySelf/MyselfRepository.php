@@ -8,19 +8,41 @@
 namespace Model\MySelf;
 
 
+use Model\Base\BaseModel;
+use Model\MySelf\Entity\Myself;
 use Nette\Database\Context;
+use Nette\Utils\Paginator;
 use slimORM\BaseRepository;
 
-class MyselfRepository extends BaseRepository {
+class MyselfRepository extends BaseModel {
 
-	const TABLE = "myself";
 	const ENTITY = '\Model\Myself\Entity\Myself';
 
 	/**
-	 * Construct
-	 * @param Context $connection
+	 * @param string $key
+	 * @return \Model\Myself\Entity\Myself|NULL
 	 */
-	public function __construct(Context $connection) {
-		parent::__construct($connection, MyselfRepository::TABLE, MyselfRepository::ENTITY);
+	public function get($key) {
+		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
+		return $repository->get($key);
+	}
+
+	/**
+	 * @param Paginator $paginator
+	 * @return MyselfRepository
+	 */
+	public function read(Paginator $paginator = NULL) {
+		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
+		return $repository->read($paginator);
+	}
+
+	/**
+	 * @param bool $needTransaction
+	 * @param Myself $entity
+	 * @return Myself|TRUE
+	 */
+	public function save($needTransaction = TRUE, Myself $entity = NULL) {
+		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
+		return $repository->save($needTransaction, $entity);
 	}
 } 

@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class BookAttachment
+ * @table book_has_attachment
+ * @package Model\Library\Entity
+ */
 class BookAttachment extends Entity {
 
 	/**
@@ -52,4 +57,37 @@ class BookAttachment extends Entity {
 		if ($this->attachment instanceof Attachment)
 			return $this->attachment->name;
 	}
+
+	/**
+	 * @return int
+	 */
+	public function getBookID()
+	{
+		return $this->bookID;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getAttachmentID()
+	{
+		return $this->attachmentID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Attachment
+	 */
+	public function getAttachment()
+	{
+		return $this->attachment;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Book
+	 */
+	public function getBook()
+	{
+		return $this->book;
+	}
+
 } 

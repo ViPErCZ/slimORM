@@ -5,6 +5,7 @@ namespace slimORM;
 use Nette\Database\Context;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
+use Nette\Diagnostics\Debugger;
 use Nette\Reflection\ClassType;
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
@@ -385,18 +386,23 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$this->referencesUpdate($entity, $primaryKey, $entity->getReferences());
 	}
 
+	/*private function preformatReferencesName($references) {
+		foreach ($references as &$ref) {
+			$ref->targetEntity = "__slimORM__" . str_replace("\\", "", $ref->targetEntity) . "Entity";
+		}
+		return $references;
+	}*/
+
 	/** Update ActiveRow in current Entity
 	 * @param Entity $entity
 	 */
 	private function updateActiveRow(Entity $entity) {
-		$reflection = ClassType::from(get_class($entity));
+		$reflection = $entity->getColumns();
 		$record = array();
-		foreach ($reflection->getProperties() as $property) {
-			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
-				$name = $property->getName();
-				if ($entity->toRow()->$name != $entity->$name) {
-					$record[$name] = $entity->$name;
-				}
+		foreach ($reflection as $property) {
+			$name = $property['name'];
+			if ($entity->toRow()->$name != $entity->$name) {
+				$record[$name] = $entity->$name;
 			}
 		}
 		$entity->toRow()->update($record);
@@ -411,25 +417,34 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	private function referencesUpdate(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
 		foreach ($references as $reference) {
-			//echo $reference->targetEntity . " <=> " . get_class($parent) . "\n";
+			/*if ($parent) {
+				echo $reference->targetEntity . " <=> " . get_class($parent) . "\n";
+				var_dump($references);
+				die();
+			}*/
 			if ($parent && ($reference->targetEntity === get_class($parent) || $reference->targetEntity === '\\' . get_class($parent))) {
 				continue;
 			}
 			$name = $reference->property;
 			$mappedBy = $reference->key;
+			$getter = "get" . ucfirst($name);
 			if (is_array($entity->$name)) {
-				foreach ($entity->$name as $refEntity) {
+				foreach ($entity->$getter() as $refEntity) {
 					if ($refEntity->toRow()) {
 						$this->updateActiveRow($refEntity);
 						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
 					} else {
+						/*var_dump($name);
+						var_dump($refEntity);
+						var_dump(get_class($entity));
+						var_dump($reference->targetEntity);*/
 						if (get_class($refEntity) == $reference->targetEntity) {
 							$refEntity->$mappedBy = $primaryKey;
 							$table = $reference->table;
 							$row = $this->database->table($table)->insert($refEntity->toArray());
 							$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
 						} else { //many to many
-							$this->manyToManyPreCrete($entity, $refEntity, $primaryKey, $reference);
+							$this->manyToManyPreCreate($entity, $refEntity, $primaryKey, $reference);
 						}
 					}
 				}
@@ -458,22 +473,43 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param stdClass $reference
 	 * @throws \ReflectionException
 	 */
-	private function manyToManyPreCrete(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
+	private function manyToManyPreCreate(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
 		$name = $reference->property;
 		$reflection = ClassType::from(get_class($entity));
 		$property = $reflection->getProperty($name);
 		if ($property->hasAnnotation("var")) {
-			$extendEntityClass = $property->getAnnotation("var");
+			$extendEntityClass = str_replace("[]", "", $property->getAnnotation("var"));
 			$extendEntity = new $extendEntityClass();
 			$table = $this->getTableFromEntityClass($extendEntity, get_class($refEntity));
-			$exRow = $this->database->table($table)->insert($refEntity->toArray());
+			/*if (empty($table)) {
+				var_dump($extendEntityClass);
+				var_dump(get_class($refEntity));
+				var_dump($name);
+				var_dump($table);
+				die();
+			}*/
+			if ($table)
+				$exRow = $this->database->table($table)->insert($refEntity->toArray());
 			foreach ($extendEntity->getColumns() as $column) {
-				$extendEntity->$column = array_search($column, $entity->getColumns()) !== FALSE ? $primaryKey : $exRow->$column;
+				$extendEntity->$column['name'] = $this->searchProperty($column['name'], $entity->getColumns()) !== FALSE ? $primaryKey : $exRow->$column['name'];
 			}
 			$this->database->table($reference->table)->insert($extendEntity->toArray());
 		} else {
 			throw new \ReflectionException("Property ". get_class($entity) . "::$name\" has no set var annotation.");
 		}
+	}
+
+	/**
+	 * @param string $name
+	 * @param array $properties
+	 * @return bool
+	 */
+	private function searchProperty($name, array $properties) {
+		foreach ($properties as $property) {
+			if ($name == $property['name'])
+				return true;
+		}
+		return false;
 	}
 
 	/**
@@ -537,7 +573,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$mappedBy = $reference->key;
 				if (is_array($entity->$name)) {
 					foreach ($entity->$name as $refEntity) {
-						if (get_class($refEntity) == $reference->targetEntity) {
+						if (get_class($refEntity) == $reference->targetEntity || "\\" . get_class($refEntity) == $reference->targetEntity) {
 							$refEntity->$mappedBy = $primaryKey;
 							if ($refEntity->toRow()) {
 								$this->update($refEntity);
@@ -546,7 +582,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 								$this->resourcesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
 							}
 						} else { //many to many
-							$this->manyToManyPreCrete($entity, $refEntity, $primaryKey, $reference);
+							$this->manyToManyPreCreate($entity, $refEntity, $primaryKey, $reference);
 						}
 					}
 				} else {

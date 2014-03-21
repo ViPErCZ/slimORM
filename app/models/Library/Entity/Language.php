@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Language
+ * @table language
+ * @package Model\Library\Entity
+ */
 class Language extends Entity {
 
 	/**

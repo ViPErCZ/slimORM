@@ -6,6 +6,7 @@ use Nette\Object;
 use Nette\ObjectMixin;
 use Nette\Reflection\ClassType;
 use slimORM\Entity\Exception\EntityException;
+use slimORM\Reflexion\EntityReflexion;
 
 /**
  * Základní třída pro entitu
@@ -20,12 +21,16 @@ abstract class Entity extends Object {
 	/** @var array */
 	private $references;
 
+	/** @var \slimORM\Reflexion\EntityReflexion */
+	protected $reflexion;
+
 	/** Konstruktor
 	 * 
 	 * @param ActiveRow $row
 	 */
 	public function __construct(ActiveRow $row = NULL) {
 		$this->references = array();
+		$this->reflexion = new EntityReflexion();
 		$this->row = $row;
 		if ($this->row)
 			$this->evaluated();
@@ -43,52 +48,9 @@ abstract class Entity extends Object {
      * @return array
      * @throws Exception\EntityException
      */
-    final public function getReferences() {
+    public function getReferences() {
 		if (count($this->references) == 0) {
-			$reflection = ClassType::from(get_class($this));
-
-			foreach ($reflection->getProperties() as $property) {
-				if ($property->hasAnnotation("reference") === TRUE) {
-					$ref = new \stdClass();
-					$ref->property = $property->getName();
-					$args = $property->getAnnotation("reference");
-					if (is_string($args)) {
-						$ref->table = $args;
-					} else {
-						$ref->table = $ref->property;
-					}
-
-					if ($property->hasAnnotation("OneToOne") === TRUE) {
-						$ref->linkage = "OneToOne";
-						$linkage = $property->getAnnotation("OneToOne");
-						$ref->targetEntity = $linkage->targetEntity;
-						$ref->key = $linkage->mappedBy;
-						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
-					} elseif ($property->hasAnnotation("OneToMany") === TRUE) {
-						$ref->linkage = "OneToMany";
-						$linkage = $property->getAnnotation("OneToMany");
-						$ref->targetEntity = $linkage->targetEntity;
-						$ref->key = $linkage->mappedBy;
-						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
-					} elseif ($property->hasAnnotation("ManyToOne") === TRUE) {
-						$ref->linkage = "ManyToOne";
-						$linkage = $property->getAnnotation("ManyToOne");
-						$ref->targetEntity = $linkage->targetEntity;
-						$ref->key = $linkage->mappedBy;
-						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
-					} elseif ($property->hasAnnotation("ManyToMany") === TRUE) {
-						$ref->linkage = "ManyToMany";
-						$linkage = $property->getAnnotation("ManyToMany");
-						$ref->targetEntity = $linkage->targetEntity;
-						$ref->key = $linkage->mappedBy;
-						$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
-					} else {
-						throw new EntityException("Reference \"". $this->getReflection() . "::$ref->property\" has no set linkage annotation type.");
-					}
-
-					$this->references[$ref->property] = $ref;
-				}
-			}
+			$this->references = $this->reflexion->getReferences(get_class($this));
 		}
 		return $this->references;
 	}
@@ -198,14 +160,14 @@ abstract class Entity extends Object {
 	 * @return array
 	 */
 	final public function toArray() {
-		$reflection = ClassType::from(get_class($this));
 		$arr = array();
-		foreach ($reflection->getProperties() as $property) {
-			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
-				$name = $property->getName();
-				$arr[$property->getName()] = $this->$name;
-			}
+		foreach ($this->getColumns() as $property) {
+			$name = $property['name'];
+			$getter = "get" . ucfirst($name);
+			$arr[$name] = $this->$getter();
 		}
+		/*var_dump($arr);
+		var_dump($this);*/
 		return $arr;
 	}
 
@@ -213,14 +175,7 @@ abstract class Entity extends Object {
 	 * @return array
 	 */
 	final public function getColumns() {
-		$reflection = ClassType::from(get_class($this));
-		$arr = array();
-		foreach ($reflection->getProperties() as $property) {
-			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
-				$arr[] = $property->getName();
-			}
-		}
-		return $arr;
+		return $this->reflexion->getColumns(get_class($this));
 	}
 	
 	/**

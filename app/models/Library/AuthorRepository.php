@@ -8,18 +8,39 @@
 namespace Model\Library;
 
 
-use Nette\Database\Context;
-use slimORM\BaseRepository;
+use Model\Base\BaseModel;
+use Model\Library\Entity\Author;
+use Nette\Utils\Paginator;
 
-class AuthorRepository extends BaseRepository {
+class AuthorRepository extends BaseModel {
 
-	const TABLE = "author";
 	const ENTITY = 'Model\Library\Entity\Author';
 
-	/** Construct
-	 * @param Context $database
+	/**
+	 * @param string $key
+	 * @return \Model\Library\Entity\Author|NULL
 	 */
-	public function __construct(Context $database) {
-		parent::__construct($database, AuthorRepository::TABLE, AuthorRepository::ENTITY);
+	public function get($key) {
+		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
+		return $repository->get($key);
+	}
+
+	/**
+	 * @param Paginator $paginator
+	 * @return AuthorRepository
+	 */
+	public function read(Paginator $paginator = NULL) {
+		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
+		return $repository->read($paginator);
+	}
+
+	/**
+	 * @param bool $needTransaction
+	 * @param Author $author
+	 * @return Author|TRUE
+	 */
+	public function save($needTransaction = TRUE, Author $author = NULL) {
+		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
+		return $repository->save($needTransaction, $author);
 	}
 } 

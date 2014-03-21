@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Book
+ * @table book
+ * @package Model\Library\Entity
+ */
 class Book extends Entity {
 
 	/**
@@ -91,6 +96,54 @@ class Book extends Entity {
 	 */
 	public function addAttachment(Attachment $attach) {
 		$this->attachments[] = $attach;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\BookAttachment[]
+	 */
+	public function getAttachments()
+	{
+		return $this->attachments;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Author
+	 */
+	public function getAuthor()
+	{
+		return $this->author;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getBookID()
+	{
+		return $this->bookID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Library
+	 */
+	public function getLibrary()
+	{
+		return $this->library;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLibraryID()
+	{
+		return $this->libraryID;
 	}
 
 } 

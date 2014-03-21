@@ -10,6 +10,9 @@ require_once dirname(__FILE__) . "/../../index.php";
  */
 class SlimORMTest extends BaseDbTest {
 
+	/** @var \slimORM\EntityManager */
+	protected $manager;
+
 	/**
 	 * @return PHPUnit_Extensions_Database_DataSet_ReplacementDataSet
 	 */
@@ -20,47 +23,63 @@ class SlimORMTest extends BaseDbTest {
 		return $replacement;
 	}
 
-	/** Annotations test
-	 *
-	 */
+	// Repository Create
+	public function testGetRepository() {
+		$manager = new \slimORM\EntityManager($this->database);
+		$repo = new \Model\Library\LibraryRepository($manager);
+
+		$lib1 = $repo->get(1);
+		$lib2 = $repo->get(2);
+
+		$this->assertEquals($lib1->getName(), "Library 1");
+		$this->assertEquals($lib2->getName(), "Library 2");
+		$this->assertEquals($lib1->getLibrarian()->getName(), "Librarian 1");
+		$this->assertEquals($lib2->getLibrarian()->getName(), "Librarian 2");
+
+		//magic getter is possible
+		$this->assertEquals($lib1->getLibrarian()->name, "Librarian 1");
+		$this->assertEquals($lib2->getLibrarian()->name, "Librarian 2");
+
+		$this->assertInstanceOf('__slimORM__ModelLibraryEntityLibraryEntity', $lib1);
+	}
+
+	// Annotations test
 	public function testAnnotations() {
 		$library = new \Model\Library\Entity\Library();
 		$references = $library->getReferences();
 		$this->assertEquals($references['books']->property, "books");
 	}
 
-	/** Read attachments read
-	 *
-	 */
+	// Read attachments read
 	public function testReadAttachments() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$library = $libraryRepository->get(1);
-		$books = $library->books;
+		$books = $library->getBooks();
 		$attachments = $books[1]->attachments;
 		$BookAttachment = current($attachments);
 		$this->assertEquals($BookAttachment->attachment->name, "CD");
 		$this->assertEquals($BookAttachment->getName(), "CD");
 	}
 
-	/** Read test
-	 * 
-	 */
+	// Read test
 	public function testRead() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$libraries = $libraryRepository->read();
 
 		$this->assertEquals($libraries->count("*"), 2);
 
 		$lib1 = $libraries->get(1);
 		$lib2 = $libraries->get(2);
-		$this->assertEquals($lib1->name, "Library 1");
-		$this->assertEquals($lib2->name, "Library 2");
+		$this->assertEquals($lib1->getName(), "Library 1");
+		$this->assertEquals($lib2->getName(), "Library 2");
 
 		$sortLibraries = $libraryRepository->read()->order("libraryID DESC");
 		$lib1 = $sortLibraries->get(1);
 		$lib2 = $sortLibraries->get(2);
-		$this->assertEquals($lib1->name, "Library 1");
-		$this->assertEquals($lib2->name, "Library 2");
+		$this->assertEquals($lib1->getName(), "Library 1");
+		$this->assertEquals($lib2->getName(), "Library 2");
 
 		$books = $lib1->books;
 		$this->assertEquals($books[1]->name, "PHP Programing");
@@ -75,20 +94,18 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($backBook->name, "PHP Programing");
 	}
 
-	/** Update test
-	 *
-	 */
+	// Update test
 	public function testUpdate() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$libraries = $libraryRepository->read();
 
-		/** @var \Model\Library\Entity\Library $lib1 */
 		$lib1 = $libraries->get(1);
 
 		$lib1->setName("Library 1 - updated");
 		$libraryRepository->save();
 
-		$this->assertEquals($lib1->name, "Library 1 - updated");
+		$this->assertEquals($lib1->getName(), "Library 1 - updated");
 
 		$lib1 = $libraries->get(1);
 		$this->assertEquals($lib1->name, "Library 1 - updated");
@@ -105,9 +122,7 @@ class SlimORMTest extends BaseDbTest {
 			$author->name = "Martin Chudoba - updated";
 			$this->assertEquals($lib1->books[1]->author->name, "Martin Chudoba - updated");
 
-			/** @var \Model\Library\Entity\Book $firstBook */
 			$firstBook = $lib1->books[1];
-			/** @var array $bookAttachments */
 			$bookAttachments = $firstBook->attachments;
 			current($bookAttachments)->attachment->name = "Change CD";
 
@@ -131,11 +146,10 @@ class SlimORMTest extends BaseDbTest {
 		}
 	}
 
-	/** Add book test
-	 *
-	 */
+	// Add book test
 	public function testAddBook() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$library = $libraryRepository->get(1);
 
 		$newBook = new \Model\Library\Entity\Book();
@@ -155,7 +169,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$libraryRepository->save(TRUE, $library);
 
-		$assertRepository = new \Model\Library\LibraryRepository($this->database);
+		$assertRepository = new \Model\Library\LibraryRepository($manager);
 		$assertLibrary = $assertRepository->get(1);
 		$assertBooks = $assertLibrary->books;
 
@@ -166,11 +180,10 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($lastBook->author->name, "William Pascal");
 	}
 
-	/** Add book with attachments test
-	 *
-	 */
+	// Add book with attachments test
 	public function testAddBookWithAttachments() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$library = $libraryRepository->get(1);
 
 		$newBook = new \Model\Library\Entity\Book();
@@ -197,7 +210,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$libraryRepository->save(TRUE, $library);
 
-		$assertRepository = new \Model\Library\LibraryRepository($this->database);
+		$assertRepository = new \Model\Library\LibraryRepository($manager);
 		$assertLibrary = $assertRepository->get(1);
 		$assertBooks = $assertLibrary->books;
 
@@ -212,13 +225,11 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals(end($assertAttachments)->name, "Attach 2");
 	}
 
-	/** Add book test with Contact
-	 *
-	 */
+	// Add book test with Contact
 	public function testAddBookWithContact() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 
-		/** @var $library \Model\Library\Entity\Library */
 		$library = $libraryRepository->get(1);
 
 		$newBook = new \Model\Library\Entity\Book();
@@ -258,7 +269,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$libraryRepository->save(TRUE, $library);
 
-		$assertRepository = new \Model\Library\LibraryRepository($this->database);
+		$assertRepository = new \Model\Library\LibraryRepository($manager);
 		$assertLibrary = $assertRepository->get(1);
 		$assertBooks = $assertLibrary->books;
 
@@ -273,11 +284,10 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals(end($phones)->number, "608 000 999");
 	}
 
-	/** Create test
-	 *
-	 */
+	// Create test
 	public function testCreate() {
-		$libraryRepository = new \Model\Library\LibraryRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$libraryRepository = new \Model\Library\LibraryRepository($manager);
 		$library = new \Model\Library\Entity\Library();
 		$library->setName("Library - inserted");
 
@@ -294,21 +304,20 @@ class SlimORMTest extends BaseDbTest {
 
 		$inserted = $libraryRepository->save(TRUE, $library);
 
-		$assertRepository = new \Model\Library\LibraryRepository($this->database);
+		$assertRepository = new \Model\Library\LibraryRepository($manager);
 		$assertLibrary = $assertRepository->get($inserted->libraryID);
 
 		$this->assertEquals($assertLibrary->name, "Library - inserted");
-		foreach ($assertLibrary->books as $item) {
-			$this->assertEquals($item->name, "True lies");
+		foreach ($assertLibrary->getBooks() as $item) {
+			$this->assertEquals($item->getName(), "True lies");
 			$this->assertEquals($item->author->name, "Bop Forest");
 		}
 	}
 
-	/** Another repository read test
-	 *
-	 */
+	// Another repository read test
 	public function testAuthorRepositoryRead() {
-		$authorRepos = new \Model\Library\AuthorRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$authorRepos = new \Model\Library\AuthorRepository($manager);
 		$author = $authorRepos->read()->where("bookID", 1)->fetch();
 		$library = $author->book->library;
 
@@ -316,11 +325,10 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($library->name, "Library 1");
 	}
 
-	/** Another repository update test
-	 *
-	 */
+	// Another repository update test
 	public function testAuthorRepositoryUpdate() {
-		$authorRepos = new \Model\Library\AuthorRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$authorRepos = new \Model\Library\AuthorRepository($manager);
 		$author = $authorRepos->read()->where("bookID", 1)->fetch();
 
 		$author->name = "Martin Chudoba - updated";
@@ -330,9 +338,10 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($author->name, "Martin Chudoba - updated");
 	}
 
-	/** Author repository insert test */
+	// Author repository insert test
 	public function testContactRepositoryInsert() {
-		$contactRepository = new \Model\Contact\ContactRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$contactRepository = new \Model\Contact\ContactRepository($manager);
 		$phone = new \Model\Contact\Entity\Phone();
 		$phone->setNumber("666 888 999");
 
@@ -365,9 +374,9 @@ class SlimORMTest extends BaseDbTest {
 	}
 
 	public function testContactRepositoryUpdate() {
-		$contactRepository = new \Model\Contact\ContactRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$contactRepository = new \Model\Contact\ContactRepository($manager);
 
-		/** @var \Model\Contact\Entity\Contact $contact */
 		$contacts = $contactRepository->read()->fetchAll();
 		$contact = end($contacts);
 
@@ -392,11 +401,9 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals(end($phones)->number, "111 222 333 - updated");
 	}
 
-	/**
-	 *
-	 */
 	public function testMyselfRepos() {
-		$myselfRepos = new \Model\MySelf\MyselfRepository($this->database);
+		$manager = new \slimORM\EntityManager($this->database);
+		$myselfRepos = new \Model\MySelf\MyselfRepository($manager);
 		$myselfEnt = new \Model\MySelf\Entity\Myself();
 		$myselfChildEnt = new \Model\MySelf\Entity\Myself();
 

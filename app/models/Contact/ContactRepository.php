@@ -45,4 +45,14 @@ class ContactRepository extends BaseModel {
 		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
 		return $repository->save($needTransaction, $contact);
 	}
+
+	/**
+	 * @param Contact $contact
+	 * @return BaseRepository
+	 */
+	public function push(Contact $contact) {
+		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
+		$repository->push($contact);
+		return $repository;
+	}
 } 

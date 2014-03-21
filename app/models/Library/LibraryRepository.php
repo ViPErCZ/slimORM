@@ -44,4 +44,14 @@ class LibraryRepository extends BaseModel {
 		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
 		return $repository->save($needTransaction, $library);
 	}
+
+	/**
+	 * @param Library $library
+	 * @return \slimORM\BaseRepository
+	 */
+	public function push(Library $library) {
+		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
+		$repository->push($library);
+		return $repository;
+	}
 } 

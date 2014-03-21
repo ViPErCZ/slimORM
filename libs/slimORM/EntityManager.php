@@ -106,7 +106,6 @@ final class EntityManager
 		if (!class_exists($genClassName)) {
 			$class = $this->cache->load($genClassName);
 			if ($class) {
-				echo "using cache...\n";
 				$repository = $class;
 			} else {
 				$repository = new ClassType($genClassName);
@@ -162,7 +161,6 @@ final class EntityManager
 			$this->entities[$genClassName] = $genClassName;
 			$class = $this->cache->load($genClassName);
 			if ($class) {
-				echo "using cache for entity...\n";
 				$repository = $class;
 				$references = $this->getReferences($className);
 				$this->generateReferences($references);

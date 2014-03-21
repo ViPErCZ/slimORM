@@ -45,4 +45,14 @@ class MyselfRepository extends BaseModel {
 		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
 		return $repository->save($needTransaction, $entity);
 	}
+
+	/**
+	 * @param Myself $myself
+	 * @return BaseRepository
+	 */
+	public function push(Myself $myself) {
+		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
+		$repository->push($myself);
+		return $repository;
+	}
 } 

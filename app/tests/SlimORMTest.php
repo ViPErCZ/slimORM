@@ -159,7 +159,9 @@ class SlimORMTest extends BaseDbTest {
 
 		$library->addBook($newBook);
 
-		$libraryRepository->save(TRUE, $library);
+		$libraryRepository
+			->push($library)
+			->save();
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$assertLibrary = $assertRepository->get(1);
@@ -199,7 +201,9 @@ class SlimORMTest extends BaseDbTest {
 
 		$library->addBook($newBook);
 
-		$libraryRepository->save(TRUE, $library);
+		$libraryRepository
+			->push($library)
+			->save();
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$assertLibrary = $assertRepository->get(1);
@@ -257,7 +261,9 @@ class SlimORMTest extends BaseDbTest {
 
 		$library->addBook($newBook);
 
-		$libraryRepository->save(TRUE, $library);
+		$libraryRepository
+			->push($library)
+			->save();
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$assertLibrary = $assertRepository->get(1);
@@ -291,10 +297,12 @@ class SlimORMTest extends BaseDbTest {
 		$book->setAuthor($author);
 		$library->addBook($book);
 
-		$inserted = $libraryRepository->save(TRUE, $library);
+		$repo = $libraryRepository->push($library);
+		$repo->save();
+		$lastID = $repo->getLastInsertID();
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
-		$assertLibrary = $assertRepository->get($inserted->libraryID);
+		$assertLibrary = $assertRepository->get($lastID);
 
 		$this->assertEquals($assertLibrary->name, "Library - inserted");
 		foreach ($assertLibrary->getBooks() as $item) {
@@ -347,7 +355,9 @@ class SlimORMTest extends BaseDbTest {
 		$contact->addPhone($phone2);
 		$contact->setRel1($rel1);
 
-		$contactRepository->save(TRUE, $contact);
+		$contactRepository
+			->push($contact)
+			->save();
 
 		$data = $contactRepository->read()->fetchAll();
 		$contact = end($data);
@@ -395,7 +405,9 @@ class SlimORMTest extends BaseDbTest {
 		$myselfChildEnt->setName("Child item");
 		$myselfEnt->setChild($myselfChildEnt);
 
-		$myselfRepos->save(TRUE, $myselfEnt);
+		$myselfRepos
+			->push($myselfEnt)
+			->save();
 
 		$data = $myselfRepos->read()->where("childID > ?", 0)->fetch();
 

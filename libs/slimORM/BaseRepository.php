@@ -312,48 +312,36 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Save Entity
-	 *
-	 * @param boolean $needTransaction
-	 * @param Entity $entity
+	/** Save entity
+	 * @return bool
 	 * @throws \PDOException
-	 * @return Entity|TRUE
 	 */
-	public function save($needTransaction = TRUE, Entity $entity = NULL) {
+	public function save() {
 		try {
-			if ($needTransaction)
+			$ownerTransaction = FALSE;
+			if ($this->database->getConnection()->getPdo()->inTransaction() === FALSE) {
 				$this->database->beginTransaction();
-			if ($entity) {
-				if ($entity->toRow()) {
-					$this->update($entity);
-					if ($needTransaction)
-						$this->database->commit();
-					return $entity;
-				} else {
-					$returnEntity = $this->insert($entity);
-					if ($needTransaction)
-						$this->database->commit();
-					return $returnEntity;
-				}
-			} else {
-				if (is_array($this->rows)) {
-					foreach ($this->rows as $key => $row) {
-						if ($row->toRow()) {
-							$this->update($row);
-						} else {
-							$returnEntity = $this->insert($row);
-							unset($this->rows[$key]);
-							$this->rows[$returnEntity->getPrimary()] = $returnEntity;
-						}
+				$ownerTransaction = TRUE;
+			}
+			if (is_array($this->rows)) {
+				foreach ($this->rows as $key => $row) {
+					if ($row->toRow()) {
+						$this->update($row);
+					} else {
+						$returnEntity = $this->insert($row);
+						unset($this->rows[$key]);
+						$this->rows[$returnEntity->getPrimary()] = $returnEntity;
 					}
 				}
-				if ($needTransaction)
-					$this->database->commit();
-				return TRUE;
 			}
+			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
+					$this->database->commit();
+			}
+			return TRUE;
 		} catch (\PDOException $e) {
-			if ($needTransaction)
+			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE) {
 				$this->database->rollBack();
+			}
 			throw new \PDOException($e->getMessage());
 		}
 	}

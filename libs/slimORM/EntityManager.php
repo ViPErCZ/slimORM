@@ -128,7 +128,10 @@ final class EntityManager
 					$this->cache->save($genClassName, $repository);
 				}
 				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
-				LimitedScope::evaluate("<?php " . $repository);
+				$res = eval('?><?php ' . $repository);
+				if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
+					throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+				}
 				$this->repositories[$genClassName] = new $genClassName($this->connection);
 			} else if (!isset($this->repositories[$genClassName])) {
 				$this->repositories[$genClassName] = new $genClassName($this->connection);
@@ -177,7 +180,10 @@ final class EntityManager
 					$this->cache->save($genClassName, $repository);
 				}
 				if (!class_exists($genClassName)) {
-					LimitedScope::evaluate("<?php " . $repository);
+					$res = eval('?><?php ' . $repository);
+					if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
+						throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+					}
 				}
 				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
 			}

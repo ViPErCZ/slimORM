@@ -21,16 +21,12 @@ abstract class Entity extends Object {
 	/** @var array */
 	private $references;
 
-	/** @var \slimORM\Reflexion\EntityReflexion */
-	protected $reflexion;
-
 	/** Konstruktor
 	 * 
 	 * @param ActiveRow $row
 	 */
 	public function __construct(ActiveRow $row = NULL) {
 		$this->references = array();
-		$this->reflexion = new EntityReflexion();
 		$this->row = $row;
 		if ($this->row)
 			$this->evaluated();
@@ -50,7 +46,7 @@ abstract class Entity extends Object {
      */
     public function getReferences() {
 		if (count($this->references) == 0) {
-			$this->references = $this->reflexion->getReferences(get_class($this));
+			$this->references = EntityReflexion::getReferences(get_class($this));
 		}
 		return $this->references;
 	}
@@ -175,7 +171,7 @@ abstract class Entity extends Object {
 	 * @return array
 	 */
 	final public function getColumns() {
-		return $this->reflexion->getColumns(get_class($this));
+		return EntityReflexion::getColumns(get_class($this));
 	}
 	
 	/**

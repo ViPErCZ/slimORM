@@ -9,9 +9,17 @@
 namespace slimORM\Reflexion;
 
 use Nette\Reflection\ClassType;
+use Nette\StaticClassException;
 
 class EntityReflexion
 {
+	/**
+	 * Static class - cannot be instantiated.
+	 */
+	final public function __construct() {
+		throw new StaticClassException;
+	}
+
 	/**
 	 * Vrací reference a jejich parametry
 	 * @param array $references
@@ -19,7 +27,7 @@ class EntityReflexion
 	 * @return array
 	 * @throws EntityException
 	 */
-	final public function getReferences($className)
+	public static function getReferences($className)
 	{
 		$references = array();
 		$reflection = ClassType::from($className);
@@ -60,7 +68,7 @@ class EntityReflexion
 					$ref->key = $linkage->mappedBy;
 					$ref->canBeNULL = isset($linkage->canBeNULL) ? (boolean)$linkage->canBeNULL : FALSE;
 				} else {
-					throw new EntityException("Reference \"" . $this->getReflection() . "::$ref->property\" has no set linkage annotation type.");
+					throw new EntityException("Reference \"" . $className . "::$ref->property\" has no set linkage annotation type.");
 				}
 
 				$references[$ref->property] = $ref;
@@ -72,7 +80,7 @@ class EntityReflexion
 	/**
 	 * @return array
 	 */
-	final public function getColumns($className)
+	public static function getColumns($className)
 	{
 		$reflection = ClassType::from($className);
 		$arr = array();
@@ -88,5 +96,17 @@ class EntityReflexion
 			}
 		}
 		return $arr;
+	}
+
+	/**
+	 * @param $className
+	 * @return null|string
+	 */
+	public static function getTable($className) {
+		$reflection = ClassType::from($className);
+		if ($reflection->hasAnnotation("table")) {
+			return $reflection->getAnnotation("table");
+		} else
+			return NULL;
 	}
 } 

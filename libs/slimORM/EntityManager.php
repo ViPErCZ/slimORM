@@ -28,9 +28,6 @@ final class EntityManager
 	/** @var \Nette\Database\Context */
 	private $connection;
 
-	/** @var \slimORM\Reflexion\EntityReflexion */
-	private $reflexion;
-
 	/** @var array */
 	private $entities;
 
@@ -45,7 +42,6 @@ final class EntityManager
 	{
 		$this->repositories = array();
 		$this->entities = array();
-		$this->reflexion = new EntityReflexion();
 		$this->connection = $connection;
 		$this->cache = $cache;
 	}
@@ -77,7 +73,7 @@ final class EntityManager
 	 */
 	final private function getColumns($className)
 	{
-		return $this->reflexion->getColumns($className);
+		return EntityReflexion::getColumns($className);
 	}
 
 	/**
@@ -86,7 +82,7 @@ final class EntityManager
 	 */
 	final private function getReferences($className)
 	{
-		return $this->reflexion->getReferences($className);
+		return EntityReflexion::getReferences($className);
 	}
 
 	/**
@@ -96,48 +92,47 @@ final class EntityManager
 	 */
 	private function generateRepository($className)
 	{
-		$reflexion = \Nette\Reflection\ClassType::from($className);
-		if ($reflexion->hasAnnotation("table")) {
-			$table = $reflexion->getAnnotation("table");
-		} else {
+		$table = EntityReflexion::getTable($className);
+		if ($table === NULL) {
 			throw new RepositoryException("Entity \"" . $className . " has no annotation \"table\"");
-		}
-		$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Repository";
-		if (!class_exists($genClassName)) {
-			$class = $this->cache->load($genClassName);
-			if ($class) {
-				$repository = $class;
-			} else {
-				$repository = new ClassType($genClassName);
-				$repository->addExtend("\slimORM\BaseRepository");
-				$repository->setFinal(TRUE);
-				$repository->addDocument(str_replace("\\", "", $reflexion->getName()) . " Repository");
-				$repository->addProperty("connection")
-					->setVisibility("protected")
-					->setDocuments(array("@var \Nette\Database\Context"));
-				$parameter = new Parameter();
-				$parameter->setName("connection");
-				$parameter->setTypeHint("\Nette\Database\Context");
-				$entity = EntityManager::PREFIX . str_replace("\\", "", $reflexion->getName()) . "Entity";
-				$repository->addMethod("__construct")
-					->setParameters(array($parameter))
-					->setBody("\$this->connection = \$connection;\nparent::__construct(\$connection, \"$table\", \"$entity\");");
-				$parameter = new Parameter();
-				$parameter->setName("key");
-				$repository->addMethod("get")
-					->setDocuments(array("Find item by primary key", "@param int \$key", "@return $entity|null"))
-					->setParameters(array($parameter))
-					->setBody("return parent::get(\$key);");
+		} else {
+			$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Repository";
+			if (!class_exists($genClassName)) {
+				$class = $this->cache->load($genClassName);
+				if ($class) {
+					$repository = $class;
+				} else {
+					$repository = new ClassType($genClassName);
+					$repository->addExtend("\slimORM\BaseRepository");
+					$repository->setFinal(TRUE);
+					$repository->addDocument($genClassName);
+					$repository->addProperty("connection")
+						->setVisibility("protected")
+						->setDocuments(array("@var \Nette\Database\Context"));
+					$parameter = new Parameter();
+					$parameter->setName("connection");
+					$parameter->setTypeHint("\Nette\Database\Context");
+					$entity = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";
+					$repository->addMethod("__construct")
+						->setParameters(array($parameter))
+						->setBody("\$this->connection = \$connection;\nparent::__construct(\$connection, \"$table\", \"$entity\");");
+					$parameter = new Parameter();
+					$parameter->setName("key");
+					$repository->addMethod("get")
+						->setDocuments(array("Find item by primary key", "@param int \$key", "@return $entity|null"))
+						->setParameters(array($parameter))
+						->setBody("return parent::get(\$key);");
 
-				//$file = new FileSystem();
-				//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
-				$this->cache->save($genClassName, $repository);
+					//$file = new FileSystem();
+					//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
+					$this->cache->save($genClassName, $repository);
+				}
+				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
+				LimitedScope::evaluate("<?php " . $repository);
+				$this->repositories[$genClassName] = new $genClassName($this->connection);
+			} else if (!isset($this->repositories[$genClassName])) {
+				$this->repositories[$genClassName] = new $genClassName($this->connection);
 			}
-			//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
-			LimitedScope::evaluate("<?php " . $repository);
-			$this->repositories[$genClassName] = new $genClassName($this->connection);
-		} else if (!isset($this->repositories[$genClassName])) {
-			$this->repositories[$genClassName] = new $genClassName($this->connection);
 		}
 	}
 
@@ -148,45 +143,44 @@ final class EntityManager
 	 */
 	private function generateEntity($className)
 	{
-		$reflexion = \Nette\Reflection\ClassType::from($className);
 		$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";
-		if ($reflexion->hasAnnotation("table")) {
-			$table = $reflexion->getAnnotation("table");
-		} else {
+		$table = EntityReflexion::getTable($className);
+		if ($table === NULL) {
 			throw new RepositoryException("Entity \"" . $className . " has no annotation \"table\"");
-		}
-		if (in_array($genClassName, $this->entities) || class_exists($genClassName)) {
-			return;
 		} else {
-			$this->entities[$genClassName] = $genClassName;
-			$class = $this->cache->load($genClassName);
-			if ($class) {
-				$repository = $class;
-				$references = $this->getReferences($className);
-				$this->generateReferences($references);
+			if (in_array($genClassName, $this->entities) || class_exists($genClassName)) {
+				return;
 			} else {
-				$repository = new ClassType($genClassName);
-				$repository->addExtend($reflexion->getName());
-				$repository->setFinal(TRUE);
-				$repository->addDocument(str_replace("\\", "", $reflexion->getName()) . " Entity");
-				$repository->addDocument("@table " . $table);
+				$this->entities[$genClassName] = $genClassName;
+				$class = $this->cache->load($genClassName);
+				if ($class) {
+					$repository = $class;
+					$references = $this->getReferences($className);
+					$this->generateReferences($references);
+				} else {
+					$repository = new ClassType($genClassName);
+					$repository->addExtend($className);
+					$repository->setFinal(TRUE);
+					$repository->addDocument($genClassName);
+					$repository->addDocument("@table " . $table);
 
-				$columns = $this->getColumns($className);
-				$this->generateGetters($columns, $repository);
+					$columns = $this->getColumns($className);
+					$this->generateGetters($columns, $repository);
 
-				$references = $this->getReferences($className);
-				$this->generateReferences($references, $repository);
+					$references = $this->getReferences($className);
+					$this->generateReferences($references, $repository);
 
-				$this->generateOverrides($repository);
+					$this->generateOverrides($repository);
 
-				//$file = new FileSystem();
-				//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
-				$this->cache->save($genClassName, $repository);
+					//$file = new FileSystem();
+					//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
+					$this->cache->save($genClassName, $repository);
+				}
+				if (!class_exists($genClassName)) {
+					LimitedScope::evaluate("<?php " . $repository);
+				}
+				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
 			}
-			if (!class_exists($genClassName)) {
-				LimitedScope::evaluate("<?php " . $repository);
-			}
-			//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
 		}
 	}
 

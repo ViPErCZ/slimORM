@@ -36,13 +36,6 @@ class EntityReflexion
 			if ($property->hasAnnotation("reference") === TRUE) {
 				$ref = new \stdClass();
 				$ref->property = $property->getName();
-				$args = $property->getAnnotation("reference");
-				if (is_string($args)) {
-					$ref->table = $args;
-				} else {
-					$ref->table = $ref->property;
-				}
-
 				if ($property->hasAnnotation("OneToOne") === TRUE) {
 					$ref->linkage = "OneToOne";
 					$linkage = $property->getAnnotation("OneToOne");
@@ -102,11 +95,30 @@ class EntityReflexion
 	 * @param $className
 	 * @return null|string
 	 */
+	public static function getParent($className) {
+		$reflection = ClassType::from($className);
+		$parent = $reflection->getParentClass();
+		return $parent ? $parent->getName() : $parent;
+	}
+
+	/**
+	 * @param $className
+	 * @return null|string
+	 */
 	public static function getTable($className) {
 		$reflection = ClassType::from($className);
 		if ($reflection->hasAnnotation("table")) {
 			return $reflection->getAnnotation("table");
 		} else
 			return NULL;
+	}
+
+	/**
+	 * @param $className
+	 * @return string
+	 */
+	public static function getFile($className) {
+		$reflection = ClassType::from($className);
+		return $reflection->getFileName();
 	}
 } 

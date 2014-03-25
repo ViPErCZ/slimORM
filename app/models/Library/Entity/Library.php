@@ -7,7 +7,6 @@
 
 namespace Model\Library\Entity;
 
-
 use slimORM\Entity\Entity;
 
 /**
@@ -47,7 +46,8 @@ class Library extends Entity {
 	 * @param Book $books
 	 * @return $this
 	 */
-	public function addBook(Book $books) {
+	public function addBook(Book $books)
+	{
 		$books->setLibrary($this);
 		$this->books[] = $books;
 		return $this;
@@ -57,7 +57,8 @@ class Library extends Entity {
 	 * @param \Model\Library\Entity\Librarian $librarian
 	 * @return $this
 	 */
-	public function setLibrarian(Librarian $librarian) {
+	public function setLibrarian(Librarian $librarian)
+	{
 		$this->librarian = $librarian;
 		return $this;
 	}
@@ -66,7 +67,8 @@ class Library extends Entity {
 	 * @param int $libraryID
 	 * @return $this
 	 */
-	public function setLibraryID($libraryID) {
+	public function setLibraryID($libraryID)
+	{
 		$this->libraryID = $libraryID;
 		return $this;
 	}
@@ -75,7 +77,8 @@ class Library extends Entity {
 	 * @param string $name
 	 * @return $this
 	 */
-	public function setName($name) {
+	public function setName($name)
+	{
 		$this->name = (string)$name;
 		return $this;
 	}

@@ -17,13 +17,21 @@ class LibraryRepository extends BaseModel {
 	/** Entity Class */
 	const ENTITY = "\Model\Library\Entity\Library";
 
+	/** Constructor
+	 * @param EntityManager $entityManager
+	 */
+	public function __construct(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		$this->entity = LibraryRepository::ENTITY;
+	}
+
 	/**
 	 * @param string $key
-	 * @return \Model\Library\Entity\Library|NULL
+	 * @return Library|NULL
 	 */
 	public function get($key) {
-		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
-		return $repository->get($key);
+		return parent::get($key);
 	}
 
 	/**
@@ -31,27 +39,21 @@ class LibraryRepository extends BaseModel {
 	 * @return LibraryRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
-		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
-		return $repository->read($paginator);
+		return parent::read($paginator);
 	}
 
 	/**
-	 * @param bool $needTransaction
-	 * @param Library $library
 	 * @return Library|TRUE
 	 */
-	public function save($needTransaction = TRUE, Library $library = NULL) {
-		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
-		return $repository->save($needTransaction, $library);
+	public function save() {
+		return parent::save();
 	}
 
 	/**
 	 * @param Library $library
-	 * @return \slimORM\BaseRepository
+	 * @return LibraryRepository
 	 */
 	public function push(Library $library) {
-		$repository = $this->entityManager->getRepository(LibraryRepository::ENTITY);
-		$repository->push($library);
-		return $repository;
+		return parent::push($library);
 	}
 } 

@@ -19,7 +19,7 @@ abstract class Entity extends Object {
 	protected $row;
 
 	/** @var array */
-	private $references;
+	protected $references;
 
 	/** Konstruktor
 	 * 

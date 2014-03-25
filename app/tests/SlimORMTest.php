@@ -33,7 +33,7 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($lib2->getLibrarian()->getName(), "Librarian 2");
 
 		//magic getter is possible
-		$this->assertEquals($lib1->getLibrarian()->name, "Librarian 1");
+		$this->assertEquals($lib1->getLibrarian()->getName(), "Librarian 1");
 		$this->assertEquals($lib2->getLibrarian()->name, "Librarian 2");
 
 		$this->assertInstanceOf('__slimORM__ModelLibraryEntityLibraryEntity', $lib1);
@@ -51,10 +51,13 @@ class SlimORMTest extends BaseDbTest {
 		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$library = $libraryRepository->get(1);
 		$books = $library->getBooks();
-		$attachments = $books[1]->attachments;
-		$BookAttachment = current($attachments);
-		$this->assertEquals($BookAttachment->attachment->name, "CD");
-		$this->assertEquals($BookAttachment->getName(), "CD");
+		$attachments = $books[1]->getAttachments();
+		foreach ($attachments as $attachment) {
+			if ($attachment->getAttachmentID() == 1) {
+				$this->assertEquals($attachment->getAttachment()->getName(), "CD");
+				$this->assertEquals($attachment->getName(), "CD");
+			}
+		}
 	}
 
 	// Read test
@@ -69,23 +72,24 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($lib1->getName(), "Library 1");
 		$this->assertEquals($lib2->getName(), "Library 2");
 
-		$sortLibraries = $libraryRepository->read()->order("libraryID DESC");
+		$sortLibraries = $libraryRepository->read();
+		$sortLibraries->order("libraryID DESC");
 		$lib1 = $sortLibraries->get(1);
 		$lib2 = $sortLibraries->get(2);
 		$this->assertEquals($lib1->getName(), "Library 1");
 		$this->assertEquals($lib2->getName(), "Library 2");
 
-		$books = $lib1->books;
-		$this->assertEquals($books[1]->name, "PHP Programing");
-		$this->assertEquals($books[2]->name, "C++ Programing");
-		$this->assertEquals($books[3]->name, "The Road");
+		$books = $lib1->getBooks();
+		$this->assertEquals($books[1]->getName(), "PHP Programing");
+		$this->assertEquals($books[2]->getName(), "C++ Programing");
+		$this->assertEquals($books[3]->getName(), "The Road");
 
-		$author = $books[1]->author;
-		$this->assertEquals($author->name, "Martin Chudoba");
-		$this->assertEquals($author->language->lang, "cz");
+		$author = $books[1]->getAuthor();
+		$this->assertEquals($author->getName(), "Martin Chudoba");
+		$this->assertEquals($author->getLanguage()->getLang(), "cz");
 
-		$backBook = $author->book;
-		$this->assertEquals($backBook->name, "PHP Programing");
+		$backBook = $author->getBook();
+		$this->assertEquals($backBook->getName(), "PHP Programing");
 	}
 
 	// Update test

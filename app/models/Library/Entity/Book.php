@@ -52,7 +52,7 @@ class Book extends Entity {
 	/**
 	 * @reference book_has_attachment
 	 * @ManyToMany(targetEntity="Model\Library\Entity\BookAttachment", mappedBy="bookID")
-	 * @var \Model\Library\Entity\BookAttachment
+	 * @var \Model\Library\Entity\BookAttachment[]
 	 */
 	protected $attachments;
 

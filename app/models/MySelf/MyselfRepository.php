@@ -13,18 +13,27 @@ use Model\MySelf\Entity\Myself;
 use Nette\Database\Context;
 use Nette\Utils\Paginator;
 use slimORM\BaseRepository;
+use slimORM\EntityManager;
 
 class MyselfRepository extends BaseModel {
 
 	const ENTITY = '\Model\Myself\Entity\Myself';
 
+	/** Constructor
+	 * @param EntityManager $entityManager
+	 */
+	public function __construct(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		$this->entity = MyselfRepository::ENTITY;
+	}
+
 	/**
 	 * @param string $key
-	 * @return \Model\Myself\Entity\Myself|NULL
+	 * @return Myself|NULL
 	 */
 	public function get($key) {
-		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
-		return $repository->get($key);
+		return parent::get($key);
 	}
 
 	/**
@@ -32,27 +41,21 @@ class MyselfRepository extends BaseModel {
 	 * @return MyselfRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
-		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
-		return $repository->read($paginator);
+		return parent::read($paginator);
 	}
 
 	/**
-	 * @param bool $needTransaction
-	 * @param Myself $entity
 	 * @return Myself|TRUE
 	 */
-	public function save($needTransaction = TRUE, Myself $entity = NULL) {
-		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
-		return $repository->save($needTransaction, $entity);
+	public function save() {
+		return parent::save();
 	}
 
 	/**
-	 * @param Myself $myself
-	 * @return BaseRepository
+	 * @param Myself $entity
+	 * @return LibraryRepository
 	 */
-	public function push(Myself $myself) {
-		$repository = $this->entityManager->getRepository(MyselfRepository::ENTITY);
-		$repository->push($myself);
-		return $repository;
+	public function push(Myself $entity) {
+		return parent::push($entity);
 	}
 } 

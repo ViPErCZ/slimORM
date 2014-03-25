@@ -11,18 +11,27 @@ namespace Model\Library;
 use Model\Base\BaseModel;
 use Model\Library\Entity\Author;
 use Nette\Utils\Paginator;
+use slimORM\EntityManager;
 
 class AuthorRepository extends BaseModel {
 
 	const ENTITY = 'Model\Library\Entity\Author';
 
+	/** Constructor
+	 * @param EntityManager $entityManager
+	 */
+	public function __construct(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		$this->entity = AuthorRepository::ENTITY;
+	}
+
 	/**
 	 * @param string $key
-	 * @return \Model\Library\Entity\Author|NULL
+	 * @return Author|NULL
 	 */
 	public function get($key) {
-		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
-		return $repository->get($key);
+		return parent::get($key);
 	}
 
 	/**
@@ -30,17 +39,23 @@ class AuthorRepository extends BaseModel {
 	 * @return AuthorRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
-		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
-		return $repository->read($paginator);
+		return parent::read($paginator);
 	}
 
 	/**
 	 * @param bool $needTransaction
-	 * @param Author $author
+	 * @param Author $library
 	 * @return Author|TRUE
 	 */
-	public function save($needTransaction = TRUE, Author $author = NULL) {
-		$repository = $this->entityManager->getRepository(AuthorRepository::ENTITY);
-		return $repository->save($needTransaction, $author);
+	public function save() {
+		return parent::save();
+	}
+
+	/**
+	 * @param Author $library
+	 * @return AuthorRepository
+	 */
+	public function push(Author $library) {
+		return parent::push($library);
 	}
 } 

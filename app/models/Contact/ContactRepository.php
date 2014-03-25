@@ -13,18 +13,27 @@ use Model\Contact\Entity\Contact;
 use Nette\Database\Context;
 use Nette\Utils\Paginator;
 use slimORM\BaseRepository;
+use slimORM\EntityManager;
 
 class ContactRepository extends BaseModel {
 
 	const ENTITY = '\Model\Contact\Entity\Contact';
 
+	/** Constructor
+	 * @param EntityManager $entityManager
+	 */
+	public function __construct(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		$this->entity = ContactRepository::ENTITY;
+	}
+
 	/**
 	 * @param string $key
-	 * @return \Model\Contact\Entity\Contact|NULL
+	 * @return Contact|NULL
 	 */
 	public function get($key) {
-		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
-		return $repository->get($key);
+		return parent::get($key);
 	}
 
 	/**
@@ -32,27 +41,21 @@ class ContactRepository extends BaseModel {
 	 * @return ContactRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
-		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
-		return $repository->read($paginator);
+		return parent::read($paginator);
 	}
 
 	/**
-	 * @param bool $needTransaction
-	 * @param Contact $contact
 	 * @return Contact|TRUE
 	 */
-	public function save($needTransaction = TRUE, Contact $contact = NULL) {
-		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
-		return $repository->save($needTransaction, $contact);
+	public function save() {
+		return parent::save();
 	}
 
 	/**
-	 * @param Contact $contact
-	 * @return BaseRepository
+	 * @param Contact $entity
+	 * @return ContactRepository
 	 */
-	public function push(Contact $contact) {
-		$repository = $this->entityManager->getRepository(ContactRepository::ENTITY);
-		$repository->push($contact);
-		return $repository;
+	public function push(Contact $entity) {
+		return parent::push($entity);
 	}
 } 

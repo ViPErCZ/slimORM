@@ -125,9 +125,10 @@ final class EntityManager
 
 					//$file = new FileSystem();
 					//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
-					$this->cache->save($genClassName, $repository);
+					$this->cache->save($genClassName, $repository, array(
+						Cache::FILES => EntityReflexion::getFile($className), // lze uvést i pole souborů
+					));
 				}
-				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
 				$res = eval('?><?php ' . $repository);
 				if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
 					throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
@@ -177,7 +178,9 @@ final class EntityManager
 
 					//$file = new FileSystem();
 					//$file->write(WWW_DIR . '/temp/' . $genClassName . ".php", "<?php\n" . $repository);
-					$this->cache->save($genClassName, $repository);
+					$this->cache->save($genClassName, $repository, array(
+						Cache::FILES => EntityReflexion::getFile($className), // lze uvést i pole souborů
+					));
 				}
 				if (!class_exists($genClassName)) {
 					$res = eval('?><?php ' . $repository);
@@ -185,7 +188,6 @@ final class EntityManager
 						throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
 					}
 				}
-				//LimitedScope::load(WWW_DIR . '/temp/' . $genClassName . ".php", TRUE);
 			}
 		}
 	}
@@ -197,7 +199,7 @@ final class EntityManager
 		$repository->addMethod("getReferences")
 			->addDocument("@return array")
 			->addDocument("@throws Exception\EntityException")
-			->setBody("\$references = parent::getReferences();\n\nforeach (\$references as &\$ref) {\n\t\$ref->targetEntity = \"" . EntityManager::PREFIX . "\" . str_replace(\"\\\\\", \"\", \$ref->targetEntity) . \"Entity\";\n}\nreturn \$references;");
+			->setBody("if (count(\$this->references) == 0) {\n\t\$references = parent::getReferences();\n\n\tforeach (\$references as &\$ref) {\n\t\t\$ref->targetEntity = \"" . EntityManager::PREFIX . "\" . str_replace(\"\\\\\", \"\", \$ref->targetEntity) . \"Entity\";\n\t}\n}\n\nreturn \$this->references;");
 	}
 
 	/**
@@ -235,8 +237,8 @@ final class EntityManager
 					$this->generateEntity($ref->targetEntity);
 					if ($repository) {
 						$phpDoc = "@return " . $ref->targetEntity . "[]";
-						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . $ref->table . "\", \"" . $ref->key . "\", \"" . $genClassName . "\"";
-						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . $ref->table . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
+						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\"";
+						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
 					}
 					break;
 				case 'OneToOne':
@@ -244,8 +246,8 @@ final class EntityManager
 					$this->generateEntity($ref->targetEntity);
 					if ($repository) {
 						$phpDoc = "@return " . $ref->targetEntity;
-						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->manyToOne(\"" . $ref->property . "\", \"" . $ref->table . "\", \"" . $ref->key . "\", \"" . $genClassName . "\"";
-						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . $ref->table . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
+						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->manyToOne(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\"";
+						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
 					}
 					break;
 			}

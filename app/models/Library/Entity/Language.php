@@ -37,4 +37,20 @@ class Language extends Entity {
 		$this->lang = (string)$lang;
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getLang()
+	{
+		return $this->lang;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLanguageID()
+	{
+		return $this->languageID;
+	}
+
 } 

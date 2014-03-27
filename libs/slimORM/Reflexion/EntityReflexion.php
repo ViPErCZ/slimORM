@@ -8,6 +8,7 @@
 
 namespace slimORM\Reflexion;
 
+use Model\Base\Entity\Exceptions\EntityException;
 use Nette\Reflection\ClassType;
 use Nette\StaticClassException;
 
@@ -20,12 +21,10 @@ class EntityReflexion
 		throw new StaticClassException;
 	}
 
-	/**
-	 * Vrací reference a jejich parametry
-	 * @param array $references
-	 * @param string $className
+	/** Vrací reference a jejich parametry
+	 * @param $className
 	 * @return array
-	 * @throws EntityException
+	 * @throws \Model\Base\Entity\Exceptions\EntityException
 	 */
 	public static function getReferences($className)
 	{

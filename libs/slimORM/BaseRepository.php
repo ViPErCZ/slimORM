@@ -297,13 +297,18 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	public function delete($key) {
 		try {
 			$this->database->beginTransaction();
-			$row = $this->get($key);
-			if ($row) {
-				$row->toRow()->delete();
-				unset($this->rows[$key]);
+			if (is_array($key)) {
+				$this->buildSql()->wherePrimary($key)->delete();
 				$this->database->commit();
 			} else {
-				throw new \PDOException("Item with primary key " . $key . " not found.");
+				$row = $this->get($key);
+				if ($row) {
+					$row->toRow()->delete();
+					unset($this->rows[$key]);
+					$this->database->commit();
+				} else {
+					throw new \PDOException("Item with primary key " . $key . " not found.");
+				}
 			}
 		} catch (\PDOException $e) {
 			$this->database->rollBack();

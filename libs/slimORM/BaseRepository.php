@@ -344,7 +344,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			}
 			return TRUE;
 		} catch (\PDOException $e) {
-			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE) {
+			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
 				$this->database->rollBack();
 			}
 			//var_dump($e->getTrace());

@@ -178,13 +178,9 @@ abstract class Entity extends Object {
 	 * 
 	 */
 	final protected function evaluated() {
-		$reflection = ClassType::from(get_class($this));
-		foreach ($reflection->getProperties() as $property) {
-			if ($property->hasAnnotation("read") === TRUE || $property->hasAnnotation("column") === TRUE) {
-				$name = $property->getName();
-				if ($this->row) {
-					$this->$name = $this->row->$name;
-				}
+		if ($this->row) {
+			foreach ($this->getColumns() as $property) {
+				$this->$property['name'] = $this->row->$property['name'];
 			}
 		}
 	}

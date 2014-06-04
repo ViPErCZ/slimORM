@@ -6,6 +6,7 @@ use Nette\Object;
 use Nette\ObjectMixin;
 use Nette\Reflection\ClassType;
 use slimORM\Entity\Exception\EntityException;
+use slimORM\EntityManager;
 use slimORM\Reflexion\EntityReflexion;
 
 /**
@@ -21,6 +22,9 @@ abstract class Entity extends Object {
 	/** @var array */
 	protected $references;
 
+	/** @var EntityManager */
+	protected $entityManager;
+
 	/** Konstruktor
 	 * 
 	 * @param ActiveRow $row
@@ -31,6 +35,14 @@ abstract class Entity extends Object {
 		if ($this->row)
 			$this->evaluated();
 	}
+
+	/**
+	 * @param EntityManager $entityManager
+	 */
+	public function setEntityManager(EntityManager $entityManager) {
+		$this->entityManager = $entityManager;
+	}
+
 
 	/**
 	 * @return ActiveRow

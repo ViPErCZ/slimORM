@@ -80,8 +80,10 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		if (is_int($primary)) {
 			if ($refresh) {
 				$this->rows[$primary] = new $this->entity($this->buildSql()->get($primary));
+				$this->rows[$primary]->setEntityManager($this->entityManager);
 			} else {
 				$this->rows[$primary] = new $this->entity($row);
+				$this->rows[$primary]->setEntityManager($this->entityManager);
 			}
 		} else {
 			throw new RepositoryException("Table \"" . self::TABLE . "\" does not have a primary key.");

@@ -109,13 +109,19 @@ final class EntityManager
 					$repository->addProperty("connection")
 						->setVisibility("protected")
 						->setDocuments(array("@var \Nette\Database\Context"));
+					$repository->addProperty("entityManager")
+						->setVisibility("protected")
+						->setDocuments(array("@var \slimORM\EntityManager"));
 					$parameter = new Parameter();
 					$parameter->setName("connection");
 					$parameter->setTypeHint("\Nette\Database\Context");
+					$parameter2 = new Parameter();
+					$parameter2->setName("entityManager");
+					$parameter2->setTypeHint("\slimORM\EntityManager");
 					$entity = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";
 					$repository->addMethod("__construct")
-						->setParameters(array($parameter))
-						->setBody("\$this->connection = \$connection;\nparent::__construct(\$connection, \"$table\", \"$entity\");");
+						->setParameters(array($parameter, $parameter2))
+						->setBody("\$this->connection = \$connection;\n\$this->entityManager = \$entityManager;\nparent::__construct(\$connection, \"$table\", \"$entity\");");
 					$parameter = new Parameter();
 					$parameter->setName("key");
 					$repository->addMethod("get")
@@ -133,9 +139,9 @@ final class EntityManager
 				if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
 					throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
 				}
-				$this->repositories[$genClassName] = new $genClassName($this->connection);
+				$this->repositories[$genClassName] = new $genClassName($this->connection, $this);
 			} else if (!isset($this->repositories[$genClassName])) {
-				$this->repositories[$genClassName] = new $genClassName($this->connection);
+				$this->repositories[$genClassName] = new $genClassName($this->connection, $this);
 			}
 		}
 	}
@@ -173,7 +179,6 @@ final class EntityManager
 
 					$references = $this->getReferences($className);
 					$this->generateReferences($references, $repository);
-
 					$this->generateOverrides($repository);
 
 					//$file = new FileSystem();

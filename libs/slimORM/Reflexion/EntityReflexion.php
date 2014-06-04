@@ -90,7 +90,7 @@ class EntityReflexion
 		return $arr;
 	}
 
-	/**
+	/** Get parent class
 	 * @param $className
 	 * @return null|string
 	 */

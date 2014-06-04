@@ -289,6 +289,25 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return $this;
 	}
 
+	/** Push entity to array
+	 * @param Entity $entity
+	 */
+	public function push(Entity $entity) {
+		if ($entity->toRow()) {
+			$this->rows[$entity->getPrimary()] = $entity;
+		} else {
+			$this->rows[] = $entity;
+		}
+	}
+
+	/**
+	 *
+	 * @return NULL|Selection
+	 */
+	public function getSelection() {
+		return $this->selection;
+	}
+
 	/** Delete
 	 * 
 	 * @param mixed $key
@@ -352,25 +371,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Push entity to array
-	 * @param Entity $entity
-	 */
-	public function push(Entity $entity) {
-		if ($entity->toRow()) {
-			$this->rows[$entity->getPrimary()] = $entity;
-		} else {
-			$this->rows[] = $entity;
-		}
-	}
-
-	/**
-	 * 
-	 * @return NULL|Selection
-	 */
-	public function getSelection() {
-		return $this->selection;
-	}
-
 	/** Update entity
 	 * @param Entity $entity
 	 */
@@ -396,26 +396,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$this->addLoop($entity);
 	}
 
-	/** Check loop protection
-	 * @param Entity $entity
-	 * @return bool
-	 */
-	private function checkLoop(Entity $entity) {
-		foreach($this->protectLoop as $loop) {
-			if ($entity->getPrimary() == $loop->getPrimary() && get_class($entity) == get_class($loop)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * @param Entity $entity
-	 */
-	private function addLoop(Entity $entity) {
-		$this->protectLoop[] = $entity;
-	}
-
 	/** Recursive references update
 	 * @param Entity $entity
 	 * @param int $primaryKey Primary key value
@@ -433,20 +413,19 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					if ($parent && $this->checkLoop($refEntity)) {
 						continue;
 					}
-					if ($refEntity->toRow()) {
+					if ($refEntity->toRow()) { //Pokud je entita načtená z DB, pokusíme se ji aktualizovat
 						$this->updateActiveRow($refEntity);
 						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
 					} else {
-						//echo EntityReflexion::getParent($reference->targetEntity) . "\n";
 						if (get_class($refEntity) == $reference->targetEntity || get_class($refEntity) == "\\" . $reference->targetEntity) {
 							$refEntity->$mappedBy = $primaryKey;
-							$table = EntityReflexion::getTable($reference->targetEntity); //$reference->table;
+							$table = EntityReflexion::getTable($reference->targetEntity);
 							$row = $this->database->table($table)->insert($refEntity->toArray());
 							$this->addLoop($refEntity);
 							$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
 						} elseif (get_class($refEntity) == EntityReflexion::getParent($reference->targetEntity)) {
 							$refEntity->$mappedBy = $primaryKey;
-							$table = EntityReflexion::getTable(EntityReflexion::getParent($reference->targetEntity)); //$reference->table;
+							$table = EntityReflexion::getTable(EntityReflexion::getParent($reference->targetEntity));
 							$row = $this->database->table($table)->insert($refEntity->toArray());
 							$this->addLoop($refEntity);
 							$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
@@ -491,7 +470,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		if ($property->hasAnnotation("var")) {
 			$extendEntityClass = str_replace("[]", "", $property->getAnnotation("var"));
 			$extendEntity = new $extendEntityClass();
-			$table = EntityReflexion::getTable(get_class($refEntity)); //$this->getTableFromEntityClass($extendEntity, get_class($refEntity));
+			$table = EntityReflexion::getTable(get_class($refEntity));
 			if ($table) {
 				$exRow = $this->database->table($table)->insert($refEntity->toArray());
 				$this->addLoop($refEntity);
@@ -557,7 +536,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				} else {
 					//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";;
 					if ($entity->$mappedBy !== NULL) { //mapped property set directly
-						break;
+						continue;
 					} else if ($refEntity->toRow() === NULL) {
 						$entity->$mappedBy = $this->recRevertInsert($refEntity, $reference, $name, $entity);
 						$entity->$name = NULL;
@@ -636,7 +615,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$refMappedBy = $ref->key;
 				$refName = $ref->property;
 				if ($refEntity->$refMappedBy !== NULL) { //mapped property set directly
-					break;
+					continue;
 				} else if ($refEntity->$refName) {
 					if ($refEntity->$refName->toRow() || $refEntity->$refName->$refMappedBy !== NULL) {
 						$this->update($refEntity->$refName);
@@ -644,7 +623,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 						$refEntity->$refMappedBy = $this->recRevertInsert($refEntity->$refName, $ref, $refName, $refEntity);
 						$refEntity->$refName->$refMappedBy = $refEntity->$refMappedBy;
 					}
-					unset($references[$key]);
+					//unset($references[$key]);
 				} else if ($ref->canBeNULL === FALSE) {
 					throw new RepositoryException("Property " . $ref->targetEntity . ":" . $refMappedBy . " cannot be NULL.");
 				}
@@ -671,6 +650,33 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$this->addLoop($entity);
 		$this->referencesInsert($entity, $row->getPrimary(), $refReferences, $entity);
 		return $row->getPrimary();
+	}
+
+	/** Check loop protection
+	 * @param Entity $entity
+	 * @return bool
+	 */
+	private function checkLoop(Entity $entity) {
+		foreach($this->protectLoop as $loop) {
+			if (EntityReflexion::getTable($loop) == EntityReflexion::getTable($entity) && $entity->getPrimary() == $loop->getPrimary()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * @param Entity $entity
+	 */
+	private function addLoop(Entity $entity) {
+		$this->protectLoop[] = $entity;
+	}
+
+	/** Nastavení ochrany proti zacyklení
+	 * @param array $loop
+	 */
+	public function setLoop(array $loop) {
+		$this->protectLoop = $loop;
 	}
 
 

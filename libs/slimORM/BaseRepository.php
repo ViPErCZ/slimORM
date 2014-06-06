@@ -464,7 +464,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					} else {
 						$getterKey = "get" . ucfirst($mappedBy);
 						$refEntity->$mappedBy = $entity->$getterKey();
-						//$refEntity->$mappedBy = $primaryKey;
 						$table = EntityReflexion::getTable($reference->targetEntity);
 						$row = $this->database->table($table)->insert($refEntity->toArray());
 						$this->addLoop($refEntity);
@@ -474,39 +473,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			}
 		}
 	}
-
-	/**
-	 * pre create many to many linkage
-	 * @param Entity $entity parent entity
-	 * @param Entity $refEntity current reference entity
-	 * @param $primaryKey
-	 * @param stdClass $reference
-	 * @throws \ReflectionException
-	 */
-	/*private function manyToManyPreCreate(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
-		$name = $reference->property;
-		$reflection = ClassType::from(get_class($entity));
-		$property = $reflection->getProperty($name);
-		if ($property->hasAnnotation("var")) {
-			$extendEntityClass = str_replace("[]", "", $property->getAnnotation("var"));
-			$extendEntity = new $extendEntityClass();
-			$table = EntityReflexion::getTable(get_class($refEntity));
-			if ($table) {
-				$exRow = $this->database->table($table)->insert($refEntity->toArray());
-				$this->addLoop($refEntity);
-			} else {
-				throw new \ReflectionException("No table found. Class: ". get_class($entity));
-			}
-			foreach ($extendEntity->getColumns() as $column) {
-				$extendEntity->$column['name'] = $this->searchProperty($column['name'], $entity->getColumns()) !== FALSE ? $primaryKey : $exRow->$column['name'];
-			}
-			$table = EntityReflexion::getTable($reference->targetEntity);
-			$this->database->table($table)->insert($extendEntity->toArray());
-			$this->addLoop($extendEntity);
-		} else {
-			throw new \ReflectionException("Property ". get_class($entity) . "::$name\" has no set var annotation.");
-		}
-	}*/
 
 	/** Helper function
 	 * @param string $name
@@ -642,7 +608,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 						$refEntity->$refMappedBy = $this->recRevertInsert($refEntity->$refName, $ref, $refName, $refEntity);
 						$refEntity->$refName->$refMappedBy = $refEntity->$refMappedBy;
 					}
-					//unset($references[$key]);
 				} else if ($ref->canBeNULL === FALSE) {
 					throw new RepositoryException("Property " . $ref->targetEntity . ":" . $refMappedBy . " cannot be NULL.");
 				}

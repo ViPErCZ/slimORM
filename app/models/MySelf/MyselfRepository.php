@@ -53,9 +53,25 @@ class MyselfRepository extends BaseModel {
 
 	/**
 	 * @param Myself $entity
-	 * @return LibraryRepository
+	 * @return MyselfRepository
 	 */
 	public function push(Myself $entity) {
 		return parent::push($entity);
+	}
+
+	/**
+	 * @return Myself
+	 */
+	public function fetch() {
+		return parent::fetch();
+	}
+
+	/**
+	 * @param $condition
+	 * @param array $parameters
+	 * @return MyselfRepository
+	 */
+	public function where($condition, $parameters = array()) {
+		return parent::where($condition, $parameters = array());
 	}
 } 

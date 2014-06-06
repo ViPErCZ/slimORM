@@ -170,5 +170,4 @@ class Author extends Entity {
 	{
 		return $this->languageID;
 	}
-
 } 

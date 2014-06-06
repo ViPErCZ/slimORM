@@ -38,18 +38,19 @@ class Library extends Entity {
 	/**
 	 * @reference book
 	 * @OneToMany(targetEntity="\Model\Library\Entity\Book", mappedBy="libraryID")
-	 * @var \Model\Library\Entity\Book[]
+	 * @var \Model\Library\BookRepository
 	 */
 	protected $books;
 
 	/**
-	 * @param Book $books
+	 * @param Book $book
 	 * @return $this
 	 */
-	public function addBook(Book $books)
+	public function addBook(Book $book)
 	{
-		$books->setLibrary($this);
-		$this->books[] = $books;
+		$book->setLibrary($this);
+		$this->books = $this->entityManager->getRepository("\Model\Library\Entity\Book");
+		$this->getBooks()->push($book);
 		return $this;
 	}
 
@@ -100,7 +101,7 @@ class Library extends Entity {
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Book[]
+	 * @return \Model\Library\BookRepository
 	 */
 	public function getBooks()
 	{

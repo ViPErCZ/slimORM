@@ -58,4 +58,20 @@ class AuthorRepository extends BaseModel {
 	public function push(Author $library) {
 		return parent::push($library);
 	}
+
+	/**
+	 * @return Author
+	 */
+	public function fetch() {
+		return parent::fetch();
+	}
+
+	/**
+	 * @param $condition
+	 * @param array $parameters
+	 * @return AuthorRepository
+	 */
+	public function where($condition, $parameters = array()) {
+		return parent::where($condition, $parameters = array());
+	}
 } 

@@ -52,9 +52,17 @@ class Book extends Entity {
 	/**
 	 * @reference book_has_attachment
 	 * @ManyToMany(targetEntity="Model\Library\Entity\BookAttachment", mappedBy="bookID")
-	 * @var \Model\Library\Entity\BookAttachment[]
+	 * @var \Model\Library\BookAttachmentRepository
 	 */
 	protected $attachments;
+
+	/**
+	 * @param int $libraryID
+	 */
+	public function setLibraryID($libraryID)
+	{
+		$this->libraryID = $libraryID;
+	}
 
 	/**
 	 * @param Author $author
@@ -95,14 +103,16 @@ class Book extends Entity {
 	 * @param Attachment $attach
 	 */
 	public function addAttachment(Attachment $attach) {
-		$this->attachments[] = $attach;
+		$bookAttachment = new BookAttachment();
+		$bookAttachment->setAttachment($attach);
+		$this->attachments = $this->entityManager->getRepository("Model\Library\Entity\BookAttachment");
+		$this->attachments->push($bookAttachment);
 	}
 
 	/**
-	 * @return \Model\Library\Entity\BookAttachment[]
+	 * @return \Model\Library\BookAttachmentRepository
 	 */
-	public function getAttachments()
-	{
+	public function getAttachments() {
 		return $this->attachments;
 	}
 

@@ -69,4 +69,37 @@ abstract class BaseModel
 		$repository->push($entity);
 		return $repository;
 	}
+
+	/**
+	 * @return Entity[]|NULL
+	 */
+	public function fetchAll() {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->fetchAll();
+	}
+
+	/**
+	 * @return Entity
+	 */
+	public function fetch() {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->fetch();
+	}
+
+	/**
+	 * @param $condition
+	 * @param array $parameters
+	 * @return \slimORM\BaseRepository
+	 */
+	public function where($condition, $parameters = array()) {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->where($condition, $parameters);
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getLastInsertID() {
+		return $this->entityManager->getRepository($this->entity)->getLastInsertID();
+	}
 } 

@@ -1,23 +1,20 @@
 <?php
 /**
- * User: Martin
- * Date: 13.12.13
- * Time: 7:48
+ * Created by PhpStorm.
+ * User: viper
+ * Date: 6.6.14
+ * Time: 14:58
  */
 
-namespace Model\Contact;
+namespace Model\Library;
 
 
 use Model\Base\BaseModel;
-use Model\Contact\Entity\Contact;
-use Nette\Database\Context;
-use Nette\Utils\Paginator;
-use slimORM\BaseRepository;
-use slimORM\EntityManager;
+use Model\Library\Entity\BookAttachment;
 
-class ContactRepository extends BaseModel {
-
-	const ENTITY = '\Model\Contact\Entity\Contact';
+class BookAttachmentRepository extends BaseModel {
+	/** Entity Class */
+	const ENTITY = "\Model\Library\Entity\BookAttachment";
 
 	/** Constructor
 	 * @param EntityManager $entityManager
@@ -25,12 +22,12 @@ class ContactRepository extends BaseModel {
 	public function __construct(EntityManager $entityManager)
 	{
 		$this->entityManager = $entityManager;
-		$this->entity = ContactRepository::ENTITY;
+		$this->entity = BookAttachmentRepository::ENTITY;
 	}
 
 	/**
 	 * @param string $key
-	 * @return Contact|NULL
+	 * @return BookAttachment|NULL
 	 */
 	public function get($key) {
 		return parent::get($key);
@@ -38,29 +35,29 @@ class ContactRepository extends BaseModel {
 
 	/**
 	 * @param Paginator $paginator
-	 * @return ContactRepository
+	 * @return BookAttachmentRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
 		return parent::read($paginator);
 	}
 
 	/**
-	 * @return Contact|TRUE
+	 * @return BookAttachment|TRUE
 	 */
 	public function save() {
 		return parent::save();
 	}
 
 	/**
-	 * @param Contact $entity
-	 * @return ContactRepository
+	 * @param BookAttachment $library
+	 * @return BookAttachmentRepository
 	 */
-	public function push(Contact $entity) {
-		return parent::push($entity);
+	public function push(BookAttachment $book) {
+		return parent::push($book);
 	}
 
 	/**
-	 * @return Contact[]
+	 * @return BookAttachment[]
 	 */
 	public function fetchAll() {
 		return parent::fetchAll();

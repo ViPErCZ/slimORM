@@ -8,6 +8,7 @@
 namespace Model\Contact\Entity;
 
 
+use Model\Contact\PhoneRepository;
 use slimORM\Entity\Entity;
 
 /**
@@ -45,7 +46,7 @@ class Contact extends Entity {
 	/**
 	 * @reference phone
 	 * @OneToMany(targetEntity="Model\Contact\Entity\Phone", mappedBy="contactID")
-	 * @var array
+	 * @var PhoneRepository
 	 */
 	protected $phones;
 
@@ -61,7 +62,8 @@ class Contact extends Entity {
 	 * @param Phone $phone
 	 */
 	public function addPhone(Phone $phone) {
-		$this->phones[] = $phone;
+		$this->phones = $this->entityManager->getRepository("Model\Contact\Entity\Phone");
+		$this->phones->push($phone);
 	}
 
 	/**
@@ -89,10 +91,9 @@ class Contact extends Entity {
 	}
 
 	/**
-	 * @return array
+	 * @return PhoneRepository
 	 */
-	public function getPhones()
-	{
+	public function getPhones() {
 		return $this->phones;
 	}
 

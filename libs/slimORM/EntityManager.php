@@ -242,7 +242,7 @@ final class EntityManager
 					$this->generateEntity($ref->targetEntity);
 					if ($repository) {
 						$phpDoc = "@return " . $ref->targetEntity . "[]";
-						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\"";
+						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $ref->targetEntity . "\"";
 						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
 					}
 					break;

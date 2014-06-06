@@ -76,19 +76,15 @@ abstract class Entity extends Object {
 			$items = $this->row->related($table, $relatedKey);
 		
 			if ($items->count('*') > 0) {
-				$this->$propertyName = $arr = array();
-				foreach($items as $item) {
-					if (is_array($item->getPrimary())) {
-						$arr[] = new $entityClass($item);
-					} else {
-						$arr[$item->getPrimary()] = new $entityClass($item);
-					}
+				if ($this->entityManager) {
+					return $this->entityManager->getRepository($entityClass)->read()->where($relatedKey, $this->row->getPrimary());
+				} else {
+					throw new EntityException("Please set EntityManager instance to " . get_class($this) . " class.");
 				}
-				$this->$propertyName = $arr;
 			} else
-				$this->$propertyName = array();
+				$this->$propertyName = NULL; //array();
 		} else if ($this->$propertyName === NULL && $this->row === NULL)
-			$this->$propertyName = array();
+			$this->$propertyName = NULL; //array();
 
 		return $this->$propertyName;
 	}
@@ -102,10 +98,12 @@ abstract class Entity extends Object {
 	 * @return instance of $entityClass
 	 */
 	final protected function &oneToOne($propertyName, $table, $referenceKey, $entityClass) {
-		if ($this->row) {
+		if ($this->$propertyName === NULL && $this->row) {
 			$row = $this->row->ref($table, $referenceKey);
-			if ($row)
+			if ($row) {
 				$this->$propertyName = new $entityClass($row);
+				$this->$propertyName->setEntityManager($this->entityManager);
+			}
 		}
 		return $this->$propertyName;
 	}
@@ -122,6 +120,7 @@ abstract class Entity extends Object {
 			$items = $this->row->related($table, $relatedKey);
 			if ($items->count() > 0) {
 				$this->$propertyName = new $entityClass($items->fetch());
+				$this->$propertyName->setEntityManager($this->entityManager);
 			}
 		}
 		return $this->$propertyName;
@@ -209,9 +208,6 @@ abstract class Entity extends Object {
 		} else {
 			ObjectMixin::set($this, $name, $value);
 		}
-		/*if ($this->row !== NULL) {
-			$this->row->$name = $this->$name;
-		}*/
 	}
 
     /**

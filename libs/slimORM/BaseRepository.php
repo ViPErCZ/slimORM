@@ -41,6 +41,9 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/** @var array */
 	protected $protectLoop = array();
 
+	/** @var array */
+	protected $originalLoop = array();
+
 	/** Konstruktor
 	 *
 	 * @param \Nette\Database\Context $connection
@@ -280,13 +283,36 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return current($this->rows);
 	}
 
+	/** Zjisti, zda-li repozitar obsahuje nejake entity k ulozeni
+	 * @return bool
+	 */
+	protected function hasNonSaveEntity() {
+		foreach($this->rows as $row) {
+			if ($row->toRow() === NULL) {
+				return TRUE;
+			} else {
+				$reflection = $row->getColumns();
+				$record = array();
+				foreach ($reflection as $property) {
+					$name = $property['name'];
+					if ($row->toRow()->$name != $row->$name) {
+						return TRUE;
+					}
+				}
+			}
+		}
+		return FALSE;
+	}
+
 	/** Create new Selection
 	 * 
 	 * @param Paginator $paginator
 	 * @return BaseRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
-		$this->rows = array();
+		if ($this->hasNonSaveEntity() === FALSE) {
+			$this->rows = array();
+		}
 		$this->selection = $this->buildSql($paginator);
 		return $this;
 	}
@@ -295,6 +321,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param Entity $entity
 	 */
 	public function push(Entity $entity) {
+		$entity->setEntityManager($this->entityManager);
 		if ($entity->toRow()) {
 			$this->rows[$entity->getPrimary()] = $entity;
 		} else {
@@ -357,7 +384,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 						unset($this->rows[$key]);
 						$this->rows[$returnEntity->getPrimary()] = $returnEntity;
 					}
-					$this->protectLoop = array();
+					$this->protectLoop = $this->originalLoop;
 				}
 			}
 			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
@@ -394,7 +421,9 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$record[$name] = $entity->$name;
 			}
 		}
-		$entity->toRow()->update($record);
+		if (count($record) > 0) {
+			$entity->toRow()->update($record);
+		}
 		$this->addLoop($entity);
 	}
 
@@ -410,44 +439,33 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			$name = $reference->property;
 			$mappedBy = $reference->key;
 			$getter = "get" . ucfirst($name);
-			if (is_array($entity->$name)) {
-				foreach ($entity->$getter() as $refEntity) {
-					if ($parent && $this->checkLoop($refEntity)) {
-						continue;
+			if ($entity->$getter() instanceof BaseRepository) {
+				$setter = "set" . ucfirst($mappedBy);
+				$getterKey = "get" . ucfirst($mappedBy);
+				$iter = 0;
+				foreach ($entity->$getter() as $item) {
+					if ($iter === 0)$this->addLoop($item);
+					if ($item->toRow() === NULL) {
+						$item->$setter($entity->$getterKey());
 					}
-					if ($refEntity->toRow()) { //Pokud je entita načtená z DB, pokusíme se ji aktualizovat
-						$this->updateActiveRow($refEntity);
-						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
-					} else {
-						if (get_class($refEntity) == $reference->targetEntity || get_class($refEntity) == "\\" . $reference->targetEntity) {
-							$refEntity->$mappedBy = $primaryKey;
-							$table = EntityReflexion::getTable($reference->targetEntity);
-							$row = $this->database->table($table)->insert($refEntity->toArray());
-							$this->addLoop($refEntity);
-							$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
-						} elseif (get_class($refEntity) == EntityReflexion::getParent($reference->targetEntity)) {
-							$refEntity->$mappedBy = $primaryKey;
-							$table = EntityReflexion::getTable(EntityReflexion::getParent($reference->targetEntity));
-							$row = $this->database->table($table)->insert($refEntity->toArray());
-							$this->addLoop($refEntity);
-							$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
-						} else { //many to many
-							$this->manyToManyPreCreate($entity, $refEntity, $primaryKey, $reference);
-						}
-					}
+					$iter++;
 				}
+				$entity->$getter()->setLoop($this->protectLoop);
+				$entity->$getter()->save();
 			} else {
-				$refEntity = $entity->$name;
+				$refEntity = $entity->$getter();
 				if ($refEntity) {
-					if ($parent && $this->checkLoop($refEntity)) {
+					if ($this->checkLoop($refEntity)) {
 						continue;
 					}
 					if ($refEntity->toRow()) {
 						$this->updateActiveRow($refEntity);
 						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
 					} else {
-						$refEntity->$mappedBy = $primaryKey;
-						$table = EntityReflexion::getTable($reference->targetEntity); //$reference->table;
+						$getterKey = "get" . ucfirst($mappedBy);
+						$refEntity->$mappedBy = $entity->$getterKey();
+						//$refEntity->$mappedBy = $primaryKey;
+						$table = EntityReflexion::getTable($reference->targetEntity);
 						$row = $this->database->table($table)->insert($refEntity->toArray());
 						$this->addLoop($refEntity);
 						$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
@@ -465,7 +483,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param stdClass $reference
 	 * @throws \ReflectionException
 	 */
-	private function manyToManyPreCreate(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
+	/*private function manyToManyPreCreate(Entity $entity, Entity $refEntity, $primaryKey, \stdClass $reference) {
 		$name = $reference->property;
 		$reflection = ClassType::from(get_class($entity));
 		$property = $reflection->getProperty($name);
@@ -488,7 +506,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		} else {
 			throw new \ReflectionException("Property ". get_class($entity) . "::$name\" has no set var annotation.");
 		}
-	}
+	}*/
 
 	/** Helper function
 	 * @param string $name
@@ -511,11 +529,13 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	protected function insert(Entity $entity) {
 		$this->beforeCheckedReferences($entity);
 		$row = $this->buildSql()->insert($entity->toArray());
-		$this->addLoop($this->createEntity($row));
+		$newEntity = $this->createEntity($row, TRUE);
 		$primaryKey = $row->getPrimary();
+		$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
+		$entity->$primaryName = $primaryKey;
+		$this->addLoop($entity);
 		$references = $entity->getReferences();
 		$this->referencesInsert($entity, $primaryKey, $references);
-		$newEntity = $this->createEntity($row, TRUE);
 		return $newEntity;
 	}
 
@@ -528,15 +548,15 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		foreach ($references as $reference) {
 			$name = $reference->property;
 			$mappedBy = $reference->key;
+			$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
 
-			if (!is_array($entity->$name) && $entity->$name !== NULL && $reference->linkage == "OneToOne") {
+			if ($entity->$name instanceof Entity && $entity->$name !== NULL && $reference->linkage == "OneToOne" && $primaryName !== $mappedBy) {
 				$refEntity = $entity->$name;
 				$table = EntityReflexion::getTable($reference->targetEntity);
 				if ($reference->canBeNULL === FALSE && $mappedBy == $this->database->table($table)->getPrimary()
 					&& get_class($entity) == get_class($refEntity)) {
 					throw new RepositoryException("Property " . $reference->targetEntity . ":" . $mappedBy . " cannot be NULL.");
 				} else {
-					//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";;
 					if ($entity->$mappedBy !== NULL) { //mapped property set directly
 						continue;
 					} else if ($refEntity->toRow() === NULL) {
@@ -558,35 +578,30 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	private function referencesInsert(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
 		foreach ($references as $reference) {
-			//echo "\n" . $reference->targetEntity . " <=> " . get_class($parent) . "\n";
 			$name = $reference->property;
 			$mappedBy = $reference->key;
-			if (is_array($entity->$name)) {
-				foreach ($entity->$name as $refEntity) {
-					if ($parent && $this->checkLoop($refEntity)) {
-						continue;
+			$getter = "get" . ucfirst($name);
+			if ($entity->$getter() instanceof BaseRepository) {
+				$setter = "set" . ucfirst($mappedBy);
+				$getterKey = "get" . ucfirst($mappedBy);
+				$iter = 0;
+				foreach ($entity->$name as $item) {
+					if ($iter === 0)$this->addLoop($item);
+					if ($item->toRow() === NULL) {
+						$item->$setter($entity->$getterKey());
 					}
-					if (get_class($refEntity) == $reference->targetEntity || "\\" . get_class($refEntity) == $reference->targetEntity) {
-						$refEntity->$mappedBy = $primaryKey;
-						if ($refEntity->toRow()) {
-							$this->update($refEntity);
-						} else {
-							$table = EntityReflexion::getTable($reference->targetEntity);
-							$row = $this->database->table($table)->insert($refEntity->toArray());
-							$this->addLoop($refEntity);
-							$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
-						}
-					} else { //many to many
-						$this->manyToManyPreCreate($entity, $refEntity, $primaryKey, $reference);
-					}
+					$iter++;
 				}
+				$entity->$getter()->setLoop($this->protectLoop);
+				$entity->$getter()->save();
 			} else {
 				$refEntity = $entity->$name;
 				if ($refEntity) {
-					if ($parent && $this->checkLoop($refEntity)) {
+					if ($this->checkLoop($refEntity)) {
 						continue;
 					}
-					$refEntity->$mappedBy = $primaryKey;
+					$getterKey = "get" . ucfirst($mappedBy);
+					$refEntity->$mappedBy = $entity->$getterKey();
 					$refEntityReferences = $refEntity->getReferences();
 
 					/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
@@ -594,6 +609,9 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 
 					$table = EntityReflexion::getTable($reference->targetEntity);
 					$row = $this->database->table($table)->insert($refEntity->toArray());
+					$primaryKey = $row->getPrimary();
+					$primaryName = $this->database->table(EntityReflexion::getTable($refEntity))->getPrimary();
+					$refEntity->$primaryName = $primaryKey;
 					$this->addLoop($refEntity);
 					$this->referencesInsert($refEntity, $row->getPrimary(), $refEntityReferences, $entity);
 				}
@@ -613,7 +631,6 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
 		foreach ($references as $key => $ref) {
 			if ($ref->linkage == "OneToOne" && $ref->targetEntity != get_class($entity)) {
-				//echo $ref->targetEntity . " <=> " . get_class($entity) . "\n";
 				$refMappedBy = $ref->key;
 				$refName = $ref->property;
 				if ($refEntity->$refMappedBy !== NULL) { //mapped property set directly
@@ -642,14 +659,14 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @return mixed
 	 */
 	private function recRevertInsert(Entity $entity, $reference, $name, Entity $parent) {
-		//echo "\nBefore: " . $name;
 		$refReferences = $entity->getReferences();
 		$entity = $this->beforeInsert($parent, $refReferences, $name);
-		/*echo "\nAfter before insert: " . $name . "\n";
-		var_dump($entity->toArray());*/
 		$table = EntityReflexion::getTable($reference->targetEntity);
 		$row = $this->database->table($table)->insert($entity->toArray());
 		$this->addLoop($entity);
+		$primaryKey = $row->getPrimary();
+		$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
+		$entity->$primaryName = $primaryKey;
 		$this->referencesInsert($entity, $row->getPrimary(), $refReferences, $entity);
 		return $row->getPrimary();
 	}
@@ -678,6 +695,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param array $loop
 	 */
 	public function setLoop(array $loop) {
+		$this->originalLoop = $loop;
 		$this->protectLoop = $loop;
 	}
 

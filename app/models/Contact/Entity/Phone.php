@@ -43,6 +43,21 @@ class Phone extends Entity {
 	protected $contact;
 
 	/**
+	 * @param int $contactID
+	 */
+	public function setContactID($contactID) {
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @param int $phoneID
+	 */
+	public function setPhoneID($phoneID) {
+		$this->phoneID = $phoneID;
+	}
+
+
+	/**
 	 * @param string $number
 	 */
 	public function setNumber($number) {

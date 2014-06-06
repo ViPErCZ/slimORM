@@ -21,6 +21,12 @@ class BookAttachment extends Entity {
 	 * @column
 	 * @var int
 	 */
+	protected $book_has_attachmentID;
+
+	/**
+	 * @column
+	 * @var int
+	 */
 	protected $bookID;
 
 	/**
@@ -81,6 +87,54 @@ class BookAttachment extends Entity {
 	{
 		return $this->attachment;
 	}
+
+	/**
+	 * @param int $book_has_attachmentID
+	 */
+	public function setBookHasAttachmentID($book_has_attachmentID) {
+		$this->book_has_attachmentID = $book_has_attachmentID;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getBook_has_attachmentID() {
+		return $this->book_has_attachmentID;
+	}
+
+
+	/**
+	 * @param int $attachmentID
+	 */
+	public function setAttachmentID($attachmentID)
+	{
+		$this->attachmentID = $attachmentID;
+	}
+
+	/**
+	 * @param int $bookID
+	 */
+	public function setBookID($bookID)
+	{
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @param string $name
+	 */
+	public function setName($name)
+	{
+		$this->name = $name;
+	}
+
+	/**
+	 * @param \Model\Library\Entity\Attachment $attachment
+	 */
+	public function setAttachment($attachment)
+	{
+		$this->attachment = $attachment;
+	}
+
 
 	/**
 	 * @return \Model\Library\Entity\Book

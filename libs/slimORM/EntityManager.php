@@ -216,7 +216,8 @@ final class EntityManager
 		foreach ($columns as $column) {
 			$name = $column['name'];
 			$method = $repository->addMethod("get" . ucfirst($name))
-				->setBody("if (\$this->row && \$this->$name === NULL) {\n" . "\t" . "\$this->$name = \$this->row->$name;\n}\n\nreturn \$this->$name;");
+				->setBody("return \$this->$name;");
+				//->setBody("if (\$this->row && \$this->$name === NULL) {\n" . "\t" . "\$this->$name = \$this->row->$name;\n}\n\nreturn \$this->$name;");
 			foreach ($column['annotations'] as $key => $doc) {
 				if ($key == "var") {
 					$return = implode(" ", $doc);

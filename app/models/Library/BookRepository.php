@@ -14,7 +14,7 @@ use Model\Library\Entity\Book;
 
 class BookRepository extends BaseModel {
 	/** Entity Class */
-	const ENTITY = "\Model\Library\Entity\Book";
+	const ENTITY = '\Model\Library\Entity\Book';
 
 	/** Constructor
 	 * @param EntityManager $entityManager

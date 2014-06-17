@@ -15,7 +15,7 @@ use slimORM\EntityManager;
 class LibraryRepository extends BaseModel {
 
 	/** Entity Class */
-	const ENTITY = "\Model\Library\Entity\Library";
+	const ENTITY = '\Model\Library\Entity\Library';
 
 	/** Constructor
 	 * @param EntityManager $entityManager

@@ -14,7 +14,7 @@ use Model\Library\Entity\BookAttachment;
 
 class BookAttachmentRepository extends BaseModel {
 	/** Entity Class */
-	const ENTITY = "\Model\Library\Entity\BookAttachment";
+	const ENTITY = '\Model\Library\Entity\BookAttachment';
 
 	/** Constructor
 	 * @param EntityManager $entityManager

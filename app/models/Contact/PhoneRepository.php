@@ -14,7 +14,7 @@ use Model\Contact\Entity\Phone;
 
 class PhoneRepository extends BaseModel {
 	/** Entity Class */
-	const ENTITY = "\Model\Contact\Entity\Phone";
+	const ENTITY = '\Model\Contact\Entity\Phone';
 
 	/** Constructor
 	 * @param EntityManager $entityManager

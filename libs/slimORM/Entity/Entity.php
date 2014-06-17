@@ -62,16 +62,16 @@ abstract class Entity extends Object {
 		}
 		return $this->references;
 	}
-	
+
 	/**
-	 * 
-	 * @param string $propertyName
-	 * @param string $table
-	 * @param string $relatedKey
-	 * @param string $entityClass
-	 * @return array
+	 * @param $propertyName
+	 * @param $table
+	 * @param $relatedKey
+	 * @param $entityClass
+	 * @return array|callable|null|\slimORM\BaseRepository|instance
+	 * @throws Exception\EntityException
 	 */
-	final protected function &oneToMany($propertyName, $table, $relatedKey, $entityClass) {
+	final protected function oneToMany($propertyName, $table, $relatedKey, $entityClass) {
 		if ($this->$propertyName === NULL && $this->row) {
 			$items = $this->row->related($table, $relatedKey);
 		
@@ -88,16 +88,15 @@ abstract class Entity extends Object {
 
 		return $this->$propertyName;
 	}
-	
+
 	/**
-	 * 
-	 * @param string $propertyName
-	 * @param string $table
-	 * @param string $referenceKey
-	 * @param string $entityClass
-	 * @return instance of $entityClass
+	 * @param $propertyName
+	 * @param $table
+	 * @param $referenceKey
+	 * @param $entityClass
+	 * @return array|callable|null|instance
 	 */
-	final protected function &oneToOne($propertyName, $table, $referenceKey, $entityClass) {
+	final protected function oneToOne($propertyName, $table, $referenceKey, $entityClass) {
 		if ($this->$propertyName === NULL && $this->row) {
 			$row = $this->row->ref($table, $referenceKey);
 			if ($row) {
@@ -109,13 +108,13 @@ abstract class Entity extends Object {
 	}
 
 	/**
-	 * @param string $propertyName
-	 * @param string $table
-	 * @param string $relatedKey
-	 * @param string $entityClass
-	 * @return instance of $entityClass
+	 * @param $propertyName
+	 * @param $table
+	 * @param $relatedKey
+	 * @param $entityClass
+	 * @return array|callable|null|instance
 	 */
-	final protected function &manyToOne($propertyName, $table, $relatedKey, $entityClass) {
+	final protected function manyToOne($propertyName, $table, $relatedKey, $entityClass) {
 		if ($this->row) {
 			$items = $this->row->related($table, $relatedKey);
 			if ($items->count() > 0) {

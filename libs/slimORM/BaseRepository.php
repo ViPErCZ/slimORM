@@ -55,6 +55,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$this->table = (string) $tableName;
 		$this->entity = (string) $entity;
 		$this->selection = NULL;
+		$this->rows = array();
 	}
 
 	/** Sestavení SQL dotazu

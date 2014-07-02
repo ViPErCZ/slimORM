@@ -305,6 +305,11 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return FALSE;
 	}
 
+	/** Clear state */
+	public function clear() {
+		$this->rows = array();
+	}
+
 	/** Create new Selection
 	 * 
 	 * @param Paginator $paginator

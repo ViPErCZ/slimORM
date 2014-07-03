@@ -344,17 +344,17 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	}
 
 	/** Delete
-	 * 
-	 * @param mixed $key
+	 * @param null|int $key
+	 * @return int
 	 * @throws \PDOException
 	 */
-	public function delete($key) {
+	public function delete($key = NULL) {
 		try {
 			$this->database->beginTransaction();
 			if (is_array($key)) {
 				$this->buildSql()->wherePrimary($key)->delete();
 				$this->database->commit();
-			} else {
+			} else if (is_int($key)) {
 				$row = $this->get($key);
 				if ($row) {
 					$row->toRow()->delete();
@@ -362,6 +362,13 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					$this->database->commit();
 				} else {
 					throw new \PDOException("Item with primary key " . $key . " not found.");
+				}
+			} else if ($key === NULL) {
+				if ($this->selection) {
+					$affected = $this->selection->delete();
+					$this->rows = array();
+					$this->database->commit();
+					return $affected;
 				}
 			}
 		} catch (\PDOException $e) {
@@ -690,9 +697,9 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	public function count($column = NULL) {
 		if ($this->selection) {
 			return $this->selection->count($column);
+		} else {
+			return 0;
 		}
-		else
-			return count($this->rows);
 	}
 
 	/*	 * ******************* interface Iterator *****************	 */

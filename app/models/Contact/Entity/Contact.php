@@ -62,7 +62,12 @@ class Contact extends Entity {
 	 * @param Phone $phone
 	 */
 	public function addPhone(Phone $phone) {
-		$this->phones = $this->entityManager->getRepository("Model\Contact\Entity\Phone");
+		if ($this->phones === NULL) {
+			$this->phones = clone $this->entityManager->getRepository('\Model\Contact\Entity\Phone');
+			if ($this->toRow() === NULL) {
+				$this->phones->clear();
+			}
+		}
 		$this->phones->push($phone);
 	}
 

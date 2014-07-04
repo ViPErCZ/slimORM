@@ -49,7 +49,12 @@ class Library extends Entity {
 	public function addBook(Book $book)
 	{
 		$book->setLibrary($this);
-		$this->books = $this->entityManager->getRepository("\Model\Library\Entity\Book");
+		if ($this->books === NULL) {
+			$this->books = clone $this->entityManager->getRepository('\Model\Library\Entity\Book');
+			if ($this->toRow() === NULL) {
+				$this->books->clear();
+			}
+		}
 		$this->getBooks()->push($book);
 		return $this;
 	}

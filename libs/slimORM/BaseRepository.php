@@ -194,13 +194,25 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/** Group
 	 * 
 	 * @param string $columns
-	 * @param string $having
 	 * @return BaseRepository
 	 * @throws RepositoryException
 	 */
-	public function group($columns, $having = NULL) {
+	public function group($columns) {
 		if ($this->selection)
-			$this->selection->group($columns, $having);
+			$this->selection->group($columns);
+		else
+			throw new RepositoryException("Before using the function group(...) call read(...).");
+		return $this;
+	}
+
+	/**
+	 * @param string $having
+	 * @return $this
+	 * @throws Exceptions\RepositoryException
+	 */
+	public function having($having) {
+		if ($this->selection)
+			$this->selection->having($having);
 		else
 			throw new RepositoryException("Before using the function group(...) call read(...).");
 		return $this;

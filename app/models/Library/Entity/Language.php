@@ -30,6 +30,14 @@ class Language extends Entity {
 	protected $lang;
 
 	/**
+	 * @param int $languageID
+	 */
+	public function setLanguageID($languageID)
+	{
+		$this->languageID = $languageID;
+	}
+
+	/**
 	 * @param string $lang
 	 */
 	public function setLang($lang)

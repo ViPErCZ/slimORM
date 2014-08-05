@@ -91,7 +91,7 @@ class BookAttachment extends Entity {
 	/**
 	 * @param int $book_has_attachmentID
 	 */
-	public function setBookHasAttachmentID($book_has_attachmentID) {
+	public function setBook_has_attachmentID($book_has_attachmentID) {
 		$this->book_has_attachmentID = $book_has_attachmentID;
 	}
 

@@ -70,6 +70,30 @@ class Author extends Entity {
 	protected $contact;
 
 	/**
+	 * @param int $bookID
+	 */
+	public function setBookID($bookID)
+	{
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @param int $contactID
+	 */
+	public function setContactID($contactID)
+	{
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @param int $languageID
+	 */
+	public function setLanguageID($languageID)
+	{
+		$this->languageID = $languageID;
+	}
+
+	/**
 	 * @param int $authorID
 	 */
 	public function setAuthorID($authorID)

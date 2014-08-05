@@ -140,23 +140,9 @@ abstract class Entity extends Object {
      */
     final public function setValues(array $values) {
 		if (is_array($values)) {
-			$class = get_class($this);
 			foreach (array_keys($this->toArray()) as $key) {
-				$uname = ucfirst($key);
-				$method = 'set' . $uname;
-				$reflection = ClassType::from($class);
-				if (isset($values[$key])) {
-					if ($reflection->hasMethod($method)) { // property setter
-						$this->$method($values[$key]);
-					} else if ($reflection->hasProperty($key)) { // unsetted property
-						$this->$key = $values[$key];
-						if ($this->row !== NULL) {
-							$this->row->$key = $values[$key];
-						}
-					} else {
-						$type = $reflection->hasMethod('get' . $uname) || $reflection->hasMethod('is' . $uname) ? 'a read-only' : 'an undeclared';
-						throw new MemberAccessException("Cannot write to $type property $class::\$$key.");
-					}
+				if (array_key_exists($key, $values)) {
+					ObjectMixin::set($this, $key, $values[$key]);
 				}
 			}
 		}
@@ -172,8 +158,6 @@ abstract class Entity extends Object {
 			$getter = "get" . ucfirst($name);
 			$arr[$name] = $this->$getter();
 		}
-		/*var_dump($arr);
-		var_dump($this);*/
 		return $arr;
 	}
 
@@ -192,20 +176,6 @@ abstract class Entity extends Object {
 			foreach ($this->getColumns() as $property) {
 				$this->$property['name'] = $this->row->$property['name'];
 			}
-		}
-	}
-
-	/**
-	 * Sets value of a property. Do not call directly.
-	 * @param string $name property name
-	 * @param mixed $value property value
-	 */
-	public function __set($name, $value) {
-		$rp = new \ReflectionProperty(get_class($this), $name);
-		if ($rp->getName() === $name) {
-			$this->$name = $value;
-		} else {
-			ObjectMixin::set($this, $name, $value);
 		}
 	}
 

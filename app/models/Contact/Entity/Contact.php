@@ -51,6 +51,22 @@ class Contact extends Entity {
 	protected $phones;
 
 	/**
+	 * @param int $contactID
+	 */
+	public function setContactID($contactID)
+	{
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @param int $rel1ID
+	 */
+	public function setRel1ID($rel1ID)
+	{
+		$this->rel1ID = $rel1ID;
+	}
+
+	/**
 	 * @param string $address
 	 */
 	public function setAddress($address) {
@@ -74,7 +90,7 @@ class Contact extends Entity {
 	/**
 	 * @param \Model\Contact\Entity\Rel1 $rel1
 	 */
-	public function setRel1(Rel1 $rel1)
+	public function setRel1(Rel1 $rel1 = NULL)
 	{
 		$this->rel1 = $rel1;
 	}

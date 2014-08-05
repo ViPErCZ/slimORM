@@ -30,6 +30,14 @@ class Attachment extends Entity {
 	protected $name;
 
 	/**
+	 * @param int $attachmentID
+	 */
+	public function setAttachmentID($attachmentID)
+	{
+		$this->attachmentID = $attachmentID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name) {

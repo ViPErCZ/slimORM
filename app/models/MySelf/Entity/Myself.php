@@ -43,6 +43,22 @@ class Myself extends Entity {
 	protected $child;
 
 	/**
+	 * @param int $childID
+	 */
+	public function setChildID($childID)
+	{
+		$this->childID = $childID;
+	}
+
+	/**
+	 * @param int $myselfID
+	 */
+	public function setMyselfID($myselfID)
+	{
+		$this->myselfID = $myselfID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name)
@@ -53,7 +69,7 @@ class Myself extends Entity {
 	/**
 	 * @param \Model\MySelf\Entity\Myself $child
 	 */
-	public function setChild(Myself $child)
+	public function setChild(Myself $child = NULL)
 	{
 		$this->child = $child;
 	}

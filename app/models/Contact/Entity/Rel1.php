@@ -43,6 +43,14 @@ class Rel1 extends Entity {
 	protected $rel2;
 
 	/**
+	 * @param int $rel1ID
+	 */
+	public function setRel1ID($rel1ID)
+	{
+		$this->rel1ID = $rel1ID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name)

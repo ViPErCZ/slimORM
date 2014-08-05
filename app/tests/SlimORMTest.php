@@ -403,33 +403,38 @@ class SlimORMTest extends BaseDbTest {
 		$contact = $contacts[$endKey];
 
 		$contact->setAddress("Washington DC - updated");
-		$phones = $contact->getPhones()->fetchAll();
+		$phoneRepos = $contact->getPhones();
+		if ($phoneRepos) {
+			$phones = $phoneRepos->fetchAll();
 
-		$firstPhoneKey = current(array_keys($phones));
-		$lastPhoneKey = end(array_keys($phones));
+			$firstPhoneKey = current(array_keys($phones));
+			$lastPhoneKey = end(array_keys($phones));
 
-		$phones[$firstPhoneKey]->setNumber("666 888 999 - updated");
-		$phones[$lastPhoneKey]->setNumber("111 222 333 - updated");
+			$phones[$firstPhoneKey]->setNumber("666 888 999 - updated");
+			$phones[$lastPhoneKey]->setNumber("111 222 333 - updated");
 
-		$contact->getRel1()->setName("sample rel3 - updated");
-		$contact->getRel1()->getRel2()->setName("sample rel4 - updated");
+			$contact->getRel1()->setName("sample rel3 - updated");
+			$contact->getRel1()->getRel2()->setName("sample rel4 - updated");
 
-		$contactRepository->save();
+			$contactRepository->save();
 
-		$data = $contactRepository->read()->fetchAll();
-		$endKey = end(array_keys($data));
-		$contact = $data[$endKey];
+			$data = $contactRepository->read()->fetchAll();
+			$endKey = end(array_keys($data));
+			$contact = $data[$endKey];
 
-		$this->assertEquals($contact->getAddress(), "Washington DC - updated");
-		$this->assertEquals($contact->getRel1()->getName(), "sample rel3 - updated");
-		$this->assertEquals($contact->getRel1()->getRel2()->getName(), "sample rel4 - updated");
+			$this->assertEquals($contact->getAddress(), "Washington DC - updated");
+			$this->assertEquals($contact->getRel1()->getName(), "sample rel3 - updated");
+			$this->assertEquals($contact->getRel1()->getRel2()->getName(), "sample rel4 - updated");
 
-		$phones = $contact->phones->fetchAll();
-		$firstPhoneKey = current(array_keys($phones));
-		$lastPhoneKey = end(array_keys($phones));
+			$phones = $contact->phones->fetchAll();
+			$firstPhoneKey = current(array_keys($phones));
+			$lastPhoneKey = end(array_keys($phones));
 
-		$this->assertEquals($phones[$firstPhoneKey]->getNumber(), "666 888 999 - updated");
-		$this->assertEquals($phones[$lastPhoneKey]->getNumber(), "111 222 333 - updated");
+			$this->assertEquals($phones[$firstPhoneKey]->getNumber(), "666 888 999 - updated");
+			$this->assertEquals($phones[$lastPhoneKey]->getNumber(), "111 222 333 - updated");
+		} else {
+			$this->assertInstanceOf('__slimORM__ModelPhoneEntityPhoneEntity', $phoneRepos);
+		}
 	}
 
 	public function testMyselfRepos() {
@@ -463,6 +468,28 @@ class SlimORMTest extends BaseDbTest {
 
 		$this->database->query("TRUNCATE TABLE myself");
 		$this->database->query("TRUNCATE TABLE phone");
+	}
+
+	public function testSetValues() {
+		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
+		$libraries = $libraryRepository->read();
+
+		$lib1 = $libraries->get(1);
+
+		$record = array(
+			"name"	=> "My slimORM Library",
+		);
+		$lib1->setValues($record);
+		$libraryRepository->save();
+
+		$this->assertEquals($lib1->getName(), "My slimORM Library");
+
+		$lib1 = $libraries->get(1);
+		$this->assertEquals($lib1->getName(), "My slimORM Library");
+
+		$libraries = $libraryRepository->read();
+		$lib1 = $libraries->get(1);
+		$this->assertEquals($lib1->getName(), "My slimORM Library");
 	}
 }
 

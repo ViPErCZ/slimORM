@@ -491,6 +491,42 @@ class SlimORMTest extends BaseDbTest {
 		$lib1 = $libraries->get(1);
 		$this->assertEquals($lib1->getName(), "My slimORM Library");
 	}
+
+	public function testPerformance() {
+		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
+		$libraries = $libraryRepository->read();
+
+		$lib1 = $libraries->get(1);
+
+		for ($x = 0; $x < 2000; $x++) {
+			$newBook = new \Model\Library\Entity\Book();
+			$newBook->setEntityManager($this->emanager);
+			$newBook->setName("Add test book");
+
+			$language = new \Model\Library\Entity\Language();
+			$language->setEntityManager($this->emanager);
+			$language->setLang("de");
+
+			$newBookAuthor = new \Model\Library\Entity\Author();
+			$newBookAuthor->setEntityManager($this->emanager);
+			$newBookAuthor->setName("William Pascal");
+			$newBookAuthor->setLanguage($language);
+
+			$newBook->setAuthor($newBookAuthor);
+			$lib1->addBook($newBook);
+		}
+
+		$libraryRepository->save();
+
+		$libraryRepository->clear();
+		$libraries = $libraryRepository->read();
+
+		$lib1 = $libraries->get(1);
+		$lib1->getBooks()->limit(100); // to performance set the limit!!! - books are not changed
+		$lib1->setName("Performance library");
+		$libraryRepository->save();
+		$this->assertEquals($lib1->getName(), "Performance library");
+	}
 }
 
 ?>

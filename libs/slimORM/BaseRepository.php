@@ -104,8 +104,10 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	public function getLastInsertID() {
 		if (count($this->rows) > 0) {
 			$end = end($this->rows);
-			if ($end->toRow()->getPrimary()) {
+			if ($end->toRow() && $end->toRow()->getPrimary()) {
 				return (int) $end->toRow()->getPrimary();
+			} else if ($end->toRow() === NULL) {
+				return NULL;
 			} else {
 				throw new RepositoryException("Table \"" . self::TABLE . "\" does not have a primary key.");
 			}
@@ -467,16 +469,18 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			if ($entity->$getter() instanceof BaseRepository) {
 				$setter = "set" . ucfirst($mappedBy);
 				$getterKey = "get" . ucfirst($mappedBy);
-				$iter = 0;
-				foreach ($entity->$getter() as $item) {
-					if ($iter === 0)$this->addLoop($item);
-					if ($item->toRow() === NULL) {
-						$item->$setter($entity->$getterKey());
+				if ($entity->$getter()->isEmpty() === FALSE) {
+					$iter = 0;
+					foreach ($entity->$getter() as $item) {
+						if ($iter === 0)$this->addLoop($item);
+						if ($item->toRow() === NULL) {
+							$item->$setter($entity->$getterKey());
+						}
+						$iter++;
 					}
-					$iter++;
+					$entity->$getter()->setLoop($this->protectLoop);
+					$entity->$getter()->save();
 				}
-				$entity->$getter()->setLoop($this->protectLoop);
-				$entity->$getter()->save();
 			} else {
 				$refEntity = $entity->$getter();
 				if ($refEntity) {
@@ -678,7 +682,9 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param Entity $entity
 	 */
 	private function addLoop(Entity $entity) {
-		$this->protectLoop[] = $entity;
+		if ($this->checkLoop($entity) === false) {
+			$this->protectLoop[] = $entity;
+		}
 	}
 
 	/** Nastavení ochrany proti zacyklení
@@ -687,6 +693,13 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	public function setLoop(array $loop) {
 		$this->originalLoop = $loop;
 		$this->protectLoop = $loop;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isEmpty() {
+		return count($this->rows) > 0 ? FALSE : TRUE;
 	}
 
 

@@ -102,4 +102,20 @@ abstract class BaseModel
 	public function getLastInsertID() {
 		return $this->entityManager->getRepository($this->entity)->getLastInsertID();
 	}
+
+	/**
+	 *
+	 */
+	public function clear() {
+		$this->entityManager->getRepository($this->entity)->clear();
+	}
+
+	/**
+	 * @param int $limit
+	 * @param null $offset
+	 * @return \slimORM\BaseRepository
+	 */
+	public function limit($limit, $offset = NULL) {
+		return $this->entityManager->getRepository($this->entity)->limit($limit, $offset);
+	}
 } 

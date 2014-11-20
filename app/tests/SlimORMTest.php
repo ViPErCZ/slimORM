@@ -117,8 +117,8 @@ class SlimORMTest extends BaseDbTest {
 
 		$author->setName("Martin Chudoba - updated");
 		$firstBook = $lib1->getBooks()->get(1);
-		$bookAttachments = $firstBook->getAttachments()->fetchAll();
-		$attachment = current($bookAttachments)->getAttachment();
+		$bookAttachments = $firstBook->getAttachments()->fetch();
+		$attachment = $bookAttachments->getAttachment();
 		$attachment->setName("Change CD");
 
 		$newAttachment = new \Model\Library\Entity\Attachment();
@@ -135,7 +135,7 @@ class SlimORMTest extends BaseDbTest {
 		$author = $books->get(1)->getAuthor();
 		$firstBook = $books->get(1);
 		$bookAttachments = $firstBook->getAttachments();
-		$attachment = current($bookAttachments->fetchAll());
+		$attachment = $bookAttachments->fetch();
 
 		$this->assertEquals($author->getName(), "Martin Chudoba - updated");
 		$this->assertEquals($bookAttachments->count('*'), 2);
@@ -171,14 +171,14 @@ class SlimORMTest extends BaseDbTest {
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$assertLibrary = $assertRepository->get(1);
-		$assertBooks = $assertLibrary->getBooks()->fetchAll();
+		$assertBooks = $assertLibrary->getBooks()->get($lastInsert);
 
-		$key = end(array_keys($assertBooks));
+		//$key = end(array_keys($assertBooks));
 		//$lastBook = end($assertBooks);
 
-		$this->assertEquals($assertBooks[$lastInsert]->getName(), "Add test book");
-		$this->assertInstanceOf('Model\Library\Entity\Library', $assertBooks[$lastInsert]->getLibrary());
-		$this->assertEquals($assertBooks[$lastInsert]->getAuthor()->getName(), "William Pascal");
+		$this->assertEquals($assertBooks->getName(), "Add test book");
+		$this->assertInstanceOf('Model\Library\Entity\Library', $assertBooks->getLibrary());
+		$this->assertEquals($assertBooks->getAuthor()->getName(), "William Pascal");
 	}
 
 	// Add book with attachments test
@@ -220,16 +220,16 @@ class SlimORMTest extends BaseDbTest {
 		$assertBooks = $assertLibrary->getBooks()->get($lastInsertID);
 
 		$assertAttachments = $assertBooks->getAttachments();
-		$attachArr = $assertBooks->getAttachments()->fetchAll();
+		/*$attachArr = $assertBooks->getAttachments()->fetchAll();
 		$firstKey = current(array_keys($attachArr));
-		$endKey = end(array_keys($attachArr));
+		$endKey = end(array_keys($attachArr));*/
 
 		$this->assertEquals($assertBooks->getName(), "Add test book with attachments");
 		$this->assertInstanceOf('Model\Library\Entity\Library', $assertBooks->getLibrary());
 		$this->assertEquals($assertBooks->getAuthor()->getName(), "William Pascal");
 		$this->assertEquals($assertAttachments->count("*"), 2);
-		$this->assertEquals($attachArr[$firstKey]->getName(), "Attach 1");
-		$this->assertEquals($attachArr[$endKey]->getName(), "Attach 2");
+		$this->assertEquals($assertAttachments->fetch()->getName(), "Attach 1");
+		$this->assertEquals($assertAttachments->fetch()->getName(), "Attach 2");
 	}
 
 	// Add book test with Contact
@@ -282,21 +282,18 @@ class SlimORMTest extends BaseDbTest {
 
 		$assertRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$assertLibrary = $assertRepository->get(1);
-		$assertBooks = $assertLibrary->getBooks()->fetchAll();
 
-		$lastBook = $assertBooks[$endKey];
+		$lastBook = $assertLibrary->getBooks()->get($endKey);
 
 		$this->assertEquals($lastBook->getName(), "Add test book");
 		$this->assertInstanceOf('Model\Library\Entity\Library', $lastBook->getLibrary());
 		$this->assertEquals($lastBook->getAuthor()->getName(), "William Pascal");
 		$this->assertEquals($lastBook->getAuthor()->getContact()->getAddress(), "Prague 6, Pankrac 501 00");
-		$phones = $lastBook->getAuthor()->getContact()->getPhones()->fetchAll();
+		$phones = $lastBook->getAuthor()->getContact()->getPhones();
 
-		$firstPhoneKey = current(array_keys($phones));
-		$lastPhoneKey = end(array_keys($phones));
 
-		$this->assertEquals($phones[$firstPhoneKey]->getNumber(), "601 601 601");
-		$this->assertEquals($phones[$lastPhoneKey]->getNumber(), "608 000 999");
+		$this->assertEquals($phones->fetch()->getNumber(), "601 601 601");
+		$this->assertEquals($phones->fetch()->getNumber(), "608 000 999");
 	}
 
 	// Create test
@@ -311,7 +308,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$author = new \Model\Library\Entity\Author();
 		$author->setName("Bop Forest");
-		$author->languageID = 1;
+		$author->setLanguageID(1);
 
 		$author->setBook($book);
 		$book->setAuthor($author);
@@ -325,7 +322,7 @@ class SlimORMTest extends BaseDbTest {
 		$assertLibrary = $assertRepository->get($lastID);
 
 		$this->assertEquals($assertLibrary->getName(), "Library - inserted");
-		foreach ($assertLibrary->getBooks()->fetchAll() as $item) {
+		foreach ($assertLibrary->getBooks() as $item) {
 			$this->assertEquals($item->getName(), "True lies");
 			$this->assertEquals($item->getAuthor()->getName(), "Bop Forest");
 		}
@@ -380,38 +377,30 @@ class SlimORMTest extends BaseDbTest {
 			->push($contact)
 			->save();
 
-		$data = $contactRepository->read()->fetchAll();
 		$key = $contactRepository->getLastInsertID();
-		$contact = $data[$key];
+		$contact = $contactRepository->get($key);
 		$this->assertEquals($contact->getAddress(), "Washington DC");
 		$this->assertEquals($contact->getRel1()->getName(), "sample rel3");
 		$this->assertEquals($contact->getRel1()->getRel2()->getName(), "sample rel4");
-		$phones = $contact->getPhones()->fetchAll();
+		$phones = $contact->getPhones();
 
-		$firstPhoneKey = current(array_keys($phones));
-		$lastPhoneKey = end(array_keys($phones));
-
-		$this->assertEquals($phones[$firstPhoneKey]->getNumber(), "666 888 999");
-		$this->assertEquals($phones[$lastPhoneKey]->getNumber(), "111 222 333");
+		$this->assertEquals($phones->fetch()->getNumber(), "666 888 999");
+		$this->assertEquals($phones->fetch()->getNumber(), "111 222 333");
 	}
 
 	public function testContactRepositoryUpdate() {
 		$contactRepository = new \Model\Contact\ContactRepository($this->emanager);
 
 		$contacts = $contactRepository->read()->fetchAll();
-		$endKey = end(array_keys($contacts));
+		$keys = array_keys($contacts);
+		$endKey = end($keys);
 		$contact = $contacts[$endKey];
 
 		$contact->setAddress("Washington DC - updated");
 		$phoneRepos = $contact->getPhones();
 		if ($phoneRepos) {
-			$phones = $phoneRepos->fetchAll();
-
-			$firstPhoneKey = current(array_keys($phones));
-			$lastPhoneKey = end(array_keys($phones));
-
-			$phones[$firstPhoneKey]->setNumber("666 888 999 - updated");
-			$phones[$lastPhoneKey]->setNumber("111 222 333 - updated");
+			$phoneRepos->fetch()->setNumber("666 888 999 - updated");
+			$phoneRepos->fetch()->setNumber("111 222 333 - updated");
 
 			$contact->getRel1()->setName("sample rel3 - updated");
 			$contact->getRel1()->getRel2()->setName("sample rel4 - updated");
@@ -419,19 +408,18 @@ class SlimORMTest extends BaseDbTest {
 			$contactRepository->save();
 
 			$data = $contactRepository->read()->fetchAll();
-			$endKey = end(array_keys($data));
+			$keys = array_keys($contacts);
+			$endKey = end($keys);
 			$contact = $data[$endKey];
 
 			$this->assertEquals($contact->getAddress(), "Washington DC - updated");
 			$this->assertEquals($contact->getRel1()->getName(), "sample rel3 - updated");
 			$this->assertEquals($contact->getRel1()->getRel2()->getName(), "sample rel4 - updated");
 
-			$phones = $contact->phones->fetchAll();
-			$firstPhoneKey = current(array_keys($phones));
-			$lastPhoneKey = end(array_keys($phones));
+			$phones = $contact->getPhones();
 
-			$this->assertEquals($phones[$firstPhoneKey]->getNumber(), "666 888 999 - updated");
-			$this->assertEquals($phones[$lastPhoneKey]->getNumber(), "111 222 333 - updated");
+			$this->assertEquals($phoneRepos->fetch()->getNumber(), "666 888 999 - updated");
+			$this->assertEquals($phoneRepos->fetch()->getNumber(), "111 222 333 - updated");
 		} else {
 			$this->assertInstanceOf('__slimORM__ModelPhoneEntityPhoneEntity', $phoneRepos);
 		}
@@ -522,7 +510,7 @@ class SlimORMTest extends BaseDbTest {
 		$libraries = $libraryRepository->read();
 
 		$lib1 = $libraries->get(1);
-		$lib1->getBooks()->limit(100); // to performance set the limit!!! - books are not changed
+		//$lib1->getBooks()->limit(100); // to performance set the limit!!! - books are not changed
 		$lib1->setName("Performance library");
 		$libraryRepository->save();
 		$this->assertEquals($lib1->getName(), "Performance library");

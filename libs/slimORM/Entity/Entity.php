@@ -64,6 +64,22 @@ abstract class Entity extends Object {
 	}
 
 	/**
+	 * @return array
+	 */
+	public function getLoadedReferences() {
+		$this->getReferences();
+		$loadedReferences = array();
+
+		foreach ($this->references as $key => $reference) {
+			if ($this->$key) {
+				$loadedReferences[$key] = $reference;
+			}
+		}
+
+		return $loadedReferences;
+	}
+
+	/**
 	 * @param $propertyName
 	 * @param $table
 	 * @param $relatedKey

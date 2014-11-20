@@ -287,15 +287,17 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return $this->rows;
 	}
 
-	/** Vrací výsledky po jednom
-	 * 
-	 * @return mixed
+	/**
+	 * Vrací výsledky po jednom
+	 * @return array|Entity
+	 * @throws RepositoryException
 	 */
 	public function fetch() {
-		if ($this->selection && count($this->rows) == 0) {
-			$this->fetchAll();
+		if ($this->selection) {
+			return $this->createEntity($this->selection->fetch());
+		} else {
+			return array();
 		}
-		return current($this->rows);
 	}
 
 	/** Zjisti, zda-li repozitar obsahuje nejake entity k ulozeni
@@ -433,7 +435,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	protected function update(Entity $entity) {
 		$this->updateActiveRow($entity);
 		$primaryKey = (int)$entity->toRow()->getPrimary(TRUE);
-		$this->referencesUpdate($entity, $primaryKey, $entity->getReferences());
+		$this->referencesUpdate($entity, $primaryKey, $entity->getLoadedReferences());
 	}
 
 	/** Update ActiveRow in current Entity

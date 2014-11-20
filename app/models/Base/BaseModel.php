@@ -8,6 +8,7 @@
 namespace Model\Base;
 
 
+use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 use slimORM\EntityManager;
 

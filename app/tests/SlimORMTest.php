@@ -173,9 +173,6 @@ class SlimORMTest extends BaseDbTest {
 		$assertLibrary = $assertRepository->get(1);
 		$assertBooks = $assertLibrary->getBooks()->get($lastInsert);
 
-		//$key = end(array_keys($assertBooks));
-		//$lastBook = end($assertBooks);
-
 		$this->assertEquals($assertBooks->getName(), "Add test book");
 		$this->assertInstanceOf('Model\Library\Entity\Library', $assertBooks->getLibrary());
 		$this->assertEquals($assertBooks->getAuthor()->getName(), "William Pascal");
@@ -220,9 +217,6 @@ class SlimORMTest extends BaseDbTest {
 		$assertBooks = $assertLibrary->getBooks()->get($lastInsertID);
 
 		$assertAttachments = $assertBooks->getAttachments();
-		/*$attachArr = $assertBooks->getAttachments()->fetchAll();
-		$firstKey = current(array_keys($attachArr));
-		$endKey = end(array_keys($attachArr));*/
 
 		$this->assertEquals($assertBooks->getName(), "Add test book with attachments");
 		$this->assertInstanceOf('Model\Library\Entity\Library', $assertBooks->getLibrary());
@@ -480,7 +474,10 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($lib1->getName(), "My slimORM Library");
 	}
 
-	public function testPerformance() {
+    //performance test (my test: 59 second, 29.25Mb)
+    // slimORM is slower and using more RAM
+    // syntax is more intuitive and uses IDE autocomplete
+	/*public function testPerformance() {
 		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
 		$libraries = $libraryRepository->read();
 
@@ -514,7 +511,53 @@ class SlimORMTest extends BaseDbTest {
 		$lib1->setName("Performance library");
 		$libraryRepository->save();
 		$this->assertEquals($lib1->getName(), "Performance library");
-	}
+	}*/
+
+    // performance test - NDB (my test: 44 second, 7.50Mb)
+    // simply NDB is faster and using less RAM
+    // syntax is more difficult
+    /*public function testNdbComparePerformance() {
+        $language = $this->database->table("language");
+        $author = $this->database->table("author");
+        $book = $this->database->table("book");
+
+        $languageID = NULL;
+        $bookID = NULL;
+
+        for ($x = 0; $x < 2000; $x++) {
+            $data = array(
+                "lang" => "de"
+            );
+            $result = $language->insert($data);
+            $languageID = $result->languageID;
+        }
+
+        for ($x = 0; $x < 2000; $x++) {
+            $data = array(
+                "libraryID"     => 1,
+                "name"          => "Add test book"
+            );
+            $result = $book->insert($data);
+            $bookID = $result->bookID;
+        }
+
+        for ($x = 0; $x < 2000; $x++) {
+            $data = array(
+                "bookID"        => $bookID,
+                "languageID"    => $languageID,
+                "name"          => "William Pascal"
+            );
+            $author->insert($data);
+        }
+
+        $libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
+        $libraries = $libraryRepository->read();
+
+        $lib1 = $libraries->get(1);
+        $lib1->setName("Performance library");
+        $libraryRepository->save();
+        $this->assertEquals($lib1->getName(), "Performance library");
+    }*/
 }
 
 ?>

@@ -1,0 +1,16 @@
+{
+	"name": "slimORM",
+	"description": "Nette database ORM.",
+	"homepage": "http://vipersoftware.net",
+	"type": "project",
+	"license": ["MIT"],
+	"authors": [
+		{
+			"name": "Martin Chudoba",
+			"homepage": "http://vipersoftware.net"
+		}
+	],
+	"require": {
+		"php": ">= 5.4.0"
+	}
+}

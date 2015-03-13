@@ -1,12 +1,13 @@
 {
-	"name": "slimORM",
+	"name": "slimorm/slimorm",
 	"description": "Nette database ORM.",
 	"homepage": "http://vipersoftware.net",
 	"type": "project",
-	"license": ["MIT"],
+	"license": "MIT",
 	"authors": [
 		{
 			"name": "Martin Chudoba",
+      "email": "info@vipersoftware.net",
 			"homepage": "http://vipersoftware.net"
 		}
 	],

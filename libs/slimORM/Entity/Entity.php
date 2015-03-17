@@ -265,13 +265,14 @@ abstract class Entity extends Object {
 			$references = $this->getReferences();
 
 			foreach ($references as $reference) {
-				if ($reference->linkage == "OneToMany") {
-					$class = $reference->targetEntity;
-					$property = $reference->property;
-					$getter = "get" . ucfirst($property);
+				$class = $reference->targetEntity;
+				$property = $reference->property;
+				$getter = "get" . ucfirst($property);
+				$entities = $this->$property;
+
+				if ($reference->linkage == "OneToMany" && is_array($entities)) {
 					$repository = clone $this->entityManager->getRepository($class);
 					$repository->clear();
-					$entities = $this->$property;
 
 					foreach ($entities as $entity) {
 						$repository->push($entity);

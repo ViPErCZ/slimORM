@@ -256,6 +256,32 @@ abstract class Entity extends Object {
 		return isset($this->$name);
 	}
 
+	/**
+	 * @internal
+	 * @throws \slimORM\Exceptions\RepositoryException
+	 */
+	final public function __referencePrepair() {
+		if ($this->toRow() === null) {
+			$references = $this->getReferences();
+
+			foreach ($references as $reference) {
+				if ($reference->linkage == "OneToMany") {
+					$class = $reference->targetEntity;
+					$property = $reference->property;
+					$getter = "get" . ucfirst($property);
+					$repository = clone $this->entityManager->getRepository($class);
+					$repository->clear();
+					$entities = $this->$property;
+
+					foreach ($entities as $entity) {
+						$repository->push($entity);
+					}
+					$this->$property = $repository;
+				}
+			}
+		}
+	}
+
 }
 
 ?>

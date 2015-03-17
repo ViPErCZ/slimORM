@@ -16,8 +16,11 @@ use Nette\Utils\LimitedScope;
 use slimORM\Exceptions\RepositoryException;
 use slimORM\Reflexion\EntityReflexion;
 
-final class EntityManager
-{
+/**
+ * Class EntityManager
+ * @package slimORM
+ */
+final class EntityManager {
 
 	/** string PREFIX */
 	const PREFIX = "__slimORM__";
@@ -38,8 +41,7 @@ final class EntityManager
 	 * @param Context $connection
 	 * @param Cache $cache
 	 */
-	public function __construct(Context $connection, Cache $cache)
-	{
+	public function __construct(Context $connection, Cache $cache) {
 		$this->repositories = array();
 		$this->entities = array();
 		$this->connection = $connection;
@@ -51,8 +53,7 @@ final class EntityManager
 	 * @throws Exceptions\RepositoryException
 	 * @return \slimORM\BaseRepository
 	 */
-	public function getRepository($className)
-	{
+	public function getRepository($className) {
 		$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Repository";
 		if (array_key_exists($genClassName, $this->repositories)) {
 			return $this->repositories[$genClassName];
@@ -71,8 +72,7 @@ final class EntityManager
 	 * @param string $className
 	 * @return array
 	 */
-	final private function getColumns($className)
-	{
+	private function getColumns($className) {
 		return EntityReflexion::getColumns($className);
 	}
 
@@ -80,8 +80,7 @@ final class EntityManager
 	 * @param string $className
 	 * @return array
 	 */
-	final private function getReferences($className)
-	{
+	private function getReferences($className) {
 		return EntityReflexion::getReferences($className);
 	}
 
@@ -90,8 +89,7 @@ final class EntityManager
 	 * @param $className
 	 * @throws Exceptions\RepositoryException
 	 */
-	private function generateRepository($className)
-	{
+	private function generateRepository($className) {
 		$table = EntityReflexion::getTable($className);
 		if ($table === NULL) {
 			throw new RepositoryException("Entity \"" . $className . " has no annotation \"table\"");
@@ -103,21 +101,21 @@ final class EntityManager
 					$repository = $class;
 				} else {
 					$repository = new ClassType($genClassName);
-					$repository->addExtend("\slimORM\BaseRepository");
+					$repository->addExtend('\slimORM\BaseRepository');
 					$repository->setFinal(TRUE);
 					$repository->addDocument($genClassName);
 					$repository->addProperty("connection")
 						->setVisibility("protected")
-						->setDocuments(array("@var \Nette\Database\Context"));
+						->setDocuments(array('@var \Nette\Database\Context'));
 					$repository->addProperty("entityManager")
 						->setVisibility("protected")
-						->setDocuments(array("@var \slimORM\EntityManager"));
+						->setDocuments(array('@var \slimORM\EntityManager'));
 					$parameter = new Parameter();
 					$parameter->setName("connection");
-					$parameter->setTypeHint("\Nette\Database\Context");
+					$parameter->setTypeHint('\Nette\Database\Context');
 					$parameter2 = new Parameter();
 					$parameter2->setName("entityManager");
-					$parameter2->setTypeHint("\slimORM\EntityManager");
+					$parameter2->setTypeHint('\slimORM\EntityManager');
 					$entity = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";
 					$repository->addMethod("__construct")
 						->setParameters(array($parameter, $parameter2))
@@ -151,8 +149,7 @@ final class EntityManager
 	 * @param $className
 	 * @throws Exceptions\RepositoryException
 	 */
-	private function generateEntity($className)
-	{
+	private function generateEntity($className)	{
 		$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";
 		$table = EntityReflexion::getTable($className);
 		if ($table === NULL) {
@@ -179,6 +176,7 @@ final class EntityManager
 
 					$references = $this->getReferences($className);
 					$this->generateReferences($references, $repository);
+					$this->generateAddMethods($references, $repository);
 					$this->generateOverrides($repository);
 
 					//$file = new FileSystem();
@@ -203,7 +201,7 @@ final class EntityManager
 	private function generateOverrides(ClassType $repository) {
 		$repository->addMethod("getReferences")
 			->addDocument("@return array")
-			->addDocument("@throws Exception\EntityException")
+			->addDocument('@throws Exception\EntityException')
 			->setBody("if (count(\$this->references) == 0) {\n\t\$references = parent::getReferences();\n\n\tforeach (\$references as &\$ref) {\n\t\t\$ref->targetEntity = \"" . EntityManager::PREFIX . "\" . str_replace(\"\\\\\", \"\", \$ref->targetEntity) . \"Entity\";\n\t}\n}\n\nreturn \$this->references;");
 	}
 
@@ -211,8 +209,7 @@ final class EntityManager
 	 * @param array $columns
 	 * @param ClassType $repository
 	 */
-	private function generateGetters(array $columns, ClassType $repository)
-	{
+	private function generateGetters(array $columns, ClassType $repository)	{
 		foreach ($columns as $column) {
 			$name = $column['name'];
 			$method = $repository->addMethod("get" . ucfirst($name))
@@ -232,8 +229,7 @@ final class EntityManager
 	 * @param array $references
 	 * @param ClassType $repository
 	 */
-	private function generateReferences(array $references, ClassType $repository = NULL)
-	{
+	private function generateReferences(array $references, ClassType $repository = NULL) {
 		foreach ($references as $ref) {
 			$body = $phpDoc = "";
 			$genClassName = EntityManager::PREFIX . str_replace("\\", "", $ref->targetEntity) . "Entity";
@@ -263,5 +259,28 @@ final class EntityManager
 					->setBody($body);
 			}
 		}
+	}
+
+	/**
+	 * @param array $references
+	 * @param ClassType $repository
+	 */
+	private function generateAddMethods(array $references, ClassType $repository) {
+		foreach ($references as $ref) {
+			if ($ref->linkage == "OneToMany") {
+				$body = "if (\$this->" . $ref->property . " === null) {\n\t\$this->" . $ref->property . " = clone \$this->entityManager->getRepository('" . $ref->targetEntity . "');\n\t";
+				$body .= "if (\$this->toRow() === null) {\n\t\t\$this->" . $ref->property . "->clear();\n\t}\n}\n\$this->get" . ucfirst($ref->property) . "()->push(\$obj);\nreturn \$this;";
+				$parameter = new Parameter();
+				$parameter->setName("obj");
+				$parameter->setTypeHint($ref->targetEntity);
+				$repository->addMethod("add" . ucfirst($ref->property))
+					->addDocument("@param " . $ref->targetEntity . " \$obj")
+					->addDocument("@return \$this")
+					->addDocument('@throws \slimORM\Exceptions\RepositoryException')
+					->setParameters(array($parameter))
+					->setBody($body);
+			}
+		}
+
 	}
 } 

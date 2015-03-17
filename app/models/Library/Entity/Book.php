@@ -105,7 +105,7 @@ class Book extends Entity {
 	public function addAttachment(Attachment $attach) {
 		$bookAttachment = new BookAttachment();
 		$bookAttachment->setAttachment($attach);
-		$this->attachments = $this->entityManager->getRepository("Model\Library\Entity\BookAttachment");
+		$this->attachments = $this->entityManager->getRepository('Model\Library\Entity\BookAttachment');
 		$this->attachments->push($bookAttachment);
 	}
 

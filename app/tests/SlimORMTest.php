@@ -161,7 +161,7 @@ class SlimORMTest extends BaseDbTest {
 		$newBookAuthor->setLanguage($language);
 
 		$newBook->setAuthor($newBookAuthor);
-		$library->addBook($newBook);
+		$library->addBooks($newBook);
 
 		$libraryRepository
 			->push($library)
@@ -204,7 +204,7 @@ class SlimORMTest extends BaseDbTest {
 		$newBook->addAttachment($attach1);
 		$newBook->addAttachment($attach2);
 
-		$library->addBook($newBook);
+		$library->addBooks($newBook);
 
 		$libraryRepository
 			->push($library)
@@ -255,8 +255,8 @@ class SlimORMTest extends BaseDbTest {
 		$contact = new \Model\Contact\Entity\Contact();
 		$contact->setEntityManager($this->emanager);
 		$contact->setAddress("Prague 6, Pankrac 501 00");
-		$contact->addPhone($phone);
-		$contact->addPhone($phone2);
+		$contact->addPhones($phone);
+		$contact->addPhones($phone2);
 		$contact->setRel1($rel1);
 
 		$newBookAuthor = new \Model\Library\Entity\Author();
@@ -266,7 +266,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$newBook->setAuthor($newBookAuthor);
 
-		$library->addBook($newBook);
+		$library->addBooks($newBook);
 
 		$libraryRepository
 			->push($library)
@@ -306,7 +306,7 @@ class SlimORMTest extends BaseDbTest {
 
 		$author->setBook($book);
 		$book->setAuthor($author);
-		$library->addBook($book);
+		$library->addBooks($book);
 
 		$repo = $libraryRepository->push($library);
 		$repo->save();
@@ -363,8 +363,8 @@ class SlimORMTest extends BaseDbTest {
 		$contact = new \Model\Contact\Entity\Contact();
 		$contact->setEntityManager($this->emanager);
 		$contact->setAddress("Washington DC");
-		$contact->addPhone($phone);
-		$contact->addPhone($phone2);
+		$contact->addPhones($phone);
+		$contact->addPhones($phone2);
 		$contact->setRel1($rel1);
 
 		$contactRepository
@@ -372,6 +372,7 @@ class SlimORMTest extends BaseDbTest {
 			->save();
 
 		$key = $contactRepository->getLastInsertID();
+		$contactRepository->clear();
 		$contact = $contactRepository->get($key);
 		$this->assertEquals($contact->getAddress(), "Washington DC");
 		$this->assertEquals($contact->getRel1()->getName(), "sample rel3");

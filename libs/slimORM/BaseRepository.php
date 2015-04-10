@@ -294,7 +294,12 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	public function fetch() {
 		if ($this->selection) {
-			return $this->createEntity($this->selection->fetch());
+			$fetch = $this->selection->fetch();
+			if ($fetch) {
+				return $this->createEntity($fetch);
+			} else {
+				return array();
+			}
 		} else {
 			return array();
 		}

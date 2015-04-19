@@ -366,34 +366,38 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 
 	/** Delete
 	 * @param null|int $key
-	 * @return int
 	 * @throws \PDOException
 	 */
 	public function delete($key = NULL) {
 		try {
-			$this->database->beginTransaction();
+			$ownerTransaction = FALSE;
+			if ($this->database->getConnection()->getPdo()->inTransaction() === FALSE) {
+				$this->database->beginTransaction();
+				$ownerTransaction = TRUE;
+			}
 			if (is_array($key)) {
 				$this->buildSql()->wherePrimary($key)->delete();
-				$this->database->commit();
 			} else if (is_int($key)) {
 				$row = $this->get($key);
 				if ($row) {
 					$row->toRow()->delete();
 					unset($this->rows[$key]);
-					$this->database->commit();
 				} else {
 					throw new \PDOException("Item with primary key " . $key . " not found.");
 				}
 			} else if ($key === NULL) {
 				if ($this->selection) {
-					$affected = $this->selection->delete();
+					$this->selection->delete();
 					$this->rows = array();
-					$this->database->commit();
-					return $affected;
 				}
 			}
+			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
+				$this->database->commit();
+			}
 		} catch (\PDOException $e) {
-			$this->database->rollBack();
+			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
+				$this->database->rollBack();
+			}
 			throw new \PDOException($e->getMessage());
 		}
 	}
@@ -423,7 +427,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				}
 			}
 			if ($this->database->getConnection()->getPdo()->inTransaction() === TRUE && $ownerTransaction === TRUE) {
-					$this->database->commit();
+				$this->database->commit();
 			}
 			return TRUE;
 		} catch (\PDOException $e) {

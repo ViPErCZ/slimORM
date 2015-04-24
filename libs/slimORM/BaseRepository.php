@@ -735,11 +735,10 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @return int
 	 */
 	public function count($column = NULL) {
-		if ($this->selection) {
-			return $this->selection->count($column);
-		} else {
-			return 0;
+		if ($this->selection === null) {
+			$this->read();
 		}
+		return $this->selection->count($column);
 	}
 
 	/*	 * ******************* interface Iterator *****************	 */

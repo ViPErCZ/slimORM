@@ -9,18 +9,20 @@
 namespace Model\Contact;
 
 
-use Model\Base\BaseModel;
+use Nette\Utils\Paginator;
+use slimORM\AbstractRepository;
 use Model\Contact\Entity\Phone;
+use slimORM\EntityManager;
 
-class PhoneRepository extends BaseModel {
+class PhoneRepository extends AbstractRepository {
+
 	/** Entity Class */
 	const ENTITY = '\Model\Contact\Entity\Phone';
 
-	/** Constructor
+	/**
 	 * @param EntityManager $entityManager
 	 */
-	public function __construct(EntityManager $entityManager)
-	{
+	public function __construct(EntityManager $entityManager) {
 		$this->entityManager = $entityManager;
 		$this->entity = PhoneRepository::ENTITY;
 	}
@@ -49,7 +51,7 @@ class PhoneRepository extends BaseModel {
 	}
 
 	/**
-	 * @param Phone $library
+	 * @param Phone $book
 	 * @return PhoneRepository
 	 */
 	public function push(Phone $book) {

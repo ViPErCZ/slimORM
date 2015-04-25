@@ -7,12 +7,12 @@
 
 namespace Model\Library;
 
-use Model\Base\BaseModel;
+use slimORM\AbstractRepository;
 use Model\Library\Entity\Library;
 use Nette\Utils\Paginator;
 use slimORM\EntityManager;
 
-class LibraryRepository extends BaseModel {
+class LibraryRepository extends AbstractRepository {
 
 	/** Entity Class */
 	const ENTITY = '\Model\Library\Entity\Library';
@@ -20,8 +20,7 @@ class LibraryRepository extends BaseModel {
 	/** Constructor
 	 * @param EntityManager $entityManager
 	 */
-	public function __construct(EntityManager $entityManager)
-	{
+	public function __construct(EntityManager $entityManager) {
 		$this->entityManager = $entityManager;
 		$this->entity = LibraryRepository::ENTITY;
 	}

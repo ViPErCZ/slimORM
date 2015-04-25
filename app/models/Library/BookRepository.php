@@ -9,10 +9,12 @@
 namespace Model\Library;
 
 
-use Model\Base\BaseModel;
+use Nette\Utils\Paginator;
+use slimORM\AbstractRepository;
 use Model\Library\Entity\Book;
+use slimORM\EntityManager;
 
-class BookRepository extends BaseModel {
+class BookRepository extends AbstractRepository {
 	/** Entity Class */
 	const ENTITY = '\Model\Library\Entity\Book';
 
@@ -49,7 +51,7 @@ class BookRepository extends BaseModel {
 	}
 
 	/**
-	 * @param Book $library
+	 * @param Book $book
 	 * @return BookRepository
 	 */
 	public function push(Book $book) {

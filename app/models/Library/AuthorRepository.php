@@ -8,12 +8,12 @@
 namespace Model\Library;
 
 
-use Model\Base\BaseModel;
 use Model\Library\Entity\Author;
 use Nette\Utils\Paginator;
+use slimORM\AbstractRepository;
 use slimORM\EntityManager;
 
-class AuthorRepository extends BaseModel {
+class AuthorRepository extends AbstractRepository {
 
 	const ENTITY = 'Model\Library\Entity\Author';
 

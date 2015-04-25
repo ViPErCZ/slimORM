@@ -5,26 +5,25 @@
  * Time: 19:07
  */
 
-namespace Model\Base;
+namespace slimORM;
 
 
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
-use slimORM\EntityManager;
 
 /**
  * Class BaseModel
  * @package Model\Base
  */
-abstract class BaseModel {
+abstract class AbstractRepository {
 
-	/** @var \slimORM\EntityManager */
+	/** @var EntityManager */
 	protected $entityManager;
 
 	/** @var string */
 	protected $entity;
 
-	/** Constructor
+	/**
 	 * @param EntityManager $entityManager
 	 * @param $entity
 	 */
@@ -83,6 +82,17 @@ abstract class BaseModel {
 	public function fetch() {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->fetch();
+	}
+
+	/**
+	 * @param string $key
+	 * @param null $value
+	 * @return array
+	 * @throws Exceptions\RepositoryException
+	 */
+	public function fetchPairs($key, $value = NULL) {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->fetchPairs($key, $value);
 	}
 
 	/**

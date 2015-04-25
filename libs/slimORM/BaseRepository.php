@@ -5,8 +5,6 @@ namespace slimORM;
 use Nette\Database\Context;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
-use Nette\Diagnostics\Debugger;
-use Nette\Reflection\ClassType;
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 use slimORM\Exceptions\RepositoryException;
@@ -44,18 +42,22 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/** @var array */
 	protected $originalLoop = array();
 
-	/** Konstruktor
-	 *
-	 * @param \Nette\Database\Context $connection
+	/**
+	 * @param Context $connection
 	 * @param string $tableName
-	 * @param string $entity
+	 * @param string $entityClass
+	 * @throws RepositoryException
 	 */
-	public function __construct(Context $connection, $tableName, $entity) {
+	public function __construct(Context $connection, $tableName, $entityClass) {
 		$this->database = $connection;
 		$this->table = (string) $tableName;
-		$this->entity = (string) $entity;
+		$this->entity = (string) $entityClass;
 		$this->selection = NULL;
 		$this->rows = array();
+
+		if (!isset($this->entityManager)) {
+			throw new RepositoryException('Direct extends ' . __CLASS__ . '. Please use abstract class slimORM\AbstractRepository');
+		}
 	}
 
 	/** Sestavení SQL dotazu

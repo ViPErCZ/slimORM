@@ -9,10 +9,10 @@
 namespace Model\Library;
 
 
-use Model\Base\BaseModel;
+use slimORM\AbstractRepository;
 use Model\Library\Entity\BookAttachment;
 
-class BookAttachmentRepository extends BaseModel {
+class BookAttachmentRepository extends AbstractRepository {
 	/** Entity Class */
 	const ENTITY = '\Model\Library\Entity\BookAttachment';
 

@@ -179,6 +179,19 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return $this;
 	}
 
+	/**
+	 * @param mixed $key
+	 * @return $this
+	 * @throws RepositoryException
+	 */
+	public function wherePrimary($key) {
+		if ($this->selection)
+			$this->selection->wherePrimary($key);
+		else
+			throw new RepositoryException("Before using the function wherePrimary(...) call read(...).");
+		return $this;
+	}
+
 	/** Order
 	 * 
 	 * @param string $columns

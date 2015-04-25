@@ -12,8 +12,11 @@ use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 use slimORM\EntityManager;
 
-abstract class BaseModel
-{
+/**
+ * Class BaseModel
+ * @package Model\Base
+ */
+abstract class BaseModel {
 
 	/** @var \slimORM\EntityManager */
 	protected $entityManager;
@@ -25,8 +28,7 @@ abstract class BaseModel
 	 * @param EntityManager $entityManager
 	 * @param $entity
 	 */
-	public function __construct(EntityManager $entityManager, $entity)
-	{
+	public function __construct(EntityManager $entityManager, $entity) {
 		$this->entityManager = $entityManager;
 		$this->entity = $entity;
 	}
@@ -35,8 +37,7 @@ abstract class BaseModel
 	 * @param string $key
 	 * @return Entity|NULL
 	 */
-	public function get($key)
-	{
+	public function get($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->get($key);
 	}
@@ -45,8 +46,7 @@ abstract class BaseModel
 	 * @param Paginator $paginator
 	 * @return \slimORM\BaseRepository
 	 */
-	public function read(Paginator $paginator = NULL)
-	{
+	public function read(Paginator $paginator = NULL) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->read($paginator);
 	}
@@ -54,8 +54,7 @@ abstract class BaseModel
 	/**
 	 * @return Entity|TRUE
 	 */
-	public function save()
-	{
+	public function save() {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->save();
 	}
@@ -64,8 +63,7 @@ abstract class BaseModel
 	 * @param Entity $entity
 	 * @return \slimORM\BaseRepository
 	 */
-	public function push(Entity $entity)
-	{
+	public function push(Entity $entity) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		$repository->push($entity);
 		return $repository;
@@ -95,6 +93,26 @@ abstract class BaseModel
 	public function where($condition, $parameters = array()) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->where($condition, $parameters);
+	}
+
+	/**
+	 * @param mixed $key
+	 * @return $this
+	 * @throws \slimORM\Exceptions\RepositoryException
+	 */
+	public function wherePrimary($key) {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->wherePrimary($key);
+	}
+
+	/**
+	 * @param null|string $column
+	 * @return int
+	 * @throws \slimORM\Exceptions\RepositoryException
+	 */
+	public function count($column = null) {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->count($column);
 	}
 
 	/**

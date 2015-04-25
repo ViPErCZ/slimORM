@@ -475,6 +475,27 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($lib1->getName(), "My slimORM Library");
 	}
 
+	public function testWherePrimary() {
+		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
+		$libraries = $libraryRepository->read()->wherePrimary(array("1"=>1,"2"=>2));
+
+		$this->assertEquals($libraries->count('*'), 2);
+
+		$lib1 = $libraryRepository->fetch();
+		$lib2 = $libraryRepository->fetch();
+
+		$this->assertEquals($lib1->getName(), "Library 1");
+		$this->assertEquals($lib2->getName(), "Library 2");
+	}
+
+	/**
+	 * @expectedException slimORM\Exceptions\RepositoryException
+	 */
+	public function testWhereException() {
+		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);
+		$libraries = $libraryRepository->where("libraryID", 1);
+	}
+
     //performance test (my test: 59 second, 29.25Mb)
     // slimORM is slower and using more RAM
     // syntax is more intuitive and uses IDE autocomplete

@@ -87,7 +87,8 @@ final class EntityManager {
 	/**
 	 * Generate repository class
 	 * @param $className
-	 * @throws Exceptions\RepositoryException
+	 * @throws RepositoryException
+	 * @throws \ErrorException
 	 */
 	private function generateRepository($className) {
 		$table = EntityReflexion::getTable($className);
@@ -147,7 +148,8 @@ final class EntityManager {
 	/**
 	 * Generate entity class
 	 * @param $className
-	 * @throws Exceptions\RepositoryException
+	 * @throws RepositoryException
+	 * @throws \ErrorException
 	 */
 	private function generateEntity($className)	{
 		$genClassName = EntityManager::PREFIX . str_replace("\\", "", $className) . "Entity";

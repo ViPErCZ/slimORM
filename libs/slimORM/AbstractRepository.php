@@ -43,7 +43,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param Paginator $paginator
-	 * @return \slimORM\BaseRepository
+	 * @return $this
 	 */
 	public function read(Paginator $paginator = NULL) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -60,7 +60,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param Entity $entity
-	 * @return \slimORM\BaseRepository
+	 * @return $this
 	 */
 	public function push(Entity $entity) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -98,7 +98,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param $condition
 	 * @param array $parameters
-	 * @return \slimORM\BaseRepository
+	 * @return $this
 	 */
 	public function where($condition, $parameters = array()) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -142,7 +142,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param int $limit
 	 * @param null $offset
-	 * @return \slimORM\BaseRepository
+	 * @return $this
 	 */
 	public function limit($limit, $offset = NULL) {
 		return $this->entityManager->getRepository($this->entity)->limit($limit, $offset);

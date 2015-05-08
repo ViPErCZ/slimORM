@@ -147,4 +147,13 @@ abstract class AbstractRepository {
 	public function limit($limit, $offset = NULL) {
 		return $this->entityManager->getRepository($this->entity)->limit($limit, $offset);
 	}
+
+	/**
+	 * @param string $columns
+	 * @return BaseRepository
+	 * @throws Exceptions\RepositoryException
+	 */
+	public function order($columns) {
+		return $this->entityManager->getRepository($this->entity)->order($columns);
+	}
 } 

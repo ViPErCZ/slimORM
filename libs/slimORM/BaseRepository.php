@@ -384,8 +384,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @throws \PDOException
 	 */
 	public function delete($key = NULL) {
+		$ownerTransaction = FALSE;
 		try {
-			$ownerTransaction = FALSE;
 			if ($this->database->getConnection()->getPdo()->inTransaction() === FALSE) {
 				$this->database->beginTransaction();
 				$ownerTransaction = TRUE;

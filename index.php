@@ -20,8 +20,6 @@ define('LOGS_DIR', WWW_DIR.'/log');
 
 $container = require __DIR__ . '/app/bootstrap.php';
 
-if (PHP_SAPI == 'cli' && !isset($phpUnitTest)) {
-	exit();
-} else if (!isset($phpUnitTest)) {
-	$container->getService('application')->run();
+if (!defined('__PHPUNIT_PHAR__')) {
+	$container->getByType('Nette\Application\Application')->run();
 }

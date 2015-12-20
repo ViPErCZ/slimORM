@@ -24,9 +24,9 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 
 	/** @var \slimORM\EntityManager */
 	protected $emanager;
-	
+
 	/** Konstruktor
-	 * 
+	 *
 	 */
 	public function __construct() {
 		$this->context = Environment::getContext();
@@ -37,7 +37,7 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	 * @return PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection
 	 */
 	protected function getConnection() {
-		$this->database = $this->context->database;
+		$this->database = $this->context->getByType('Nette\Database\Context');
 		$this->cache = new \Nette\Caching\Cache($this->context->cacheStorage, 'slimORM');
 		$this->emanager = new \slimORM\EntityManager($this->database, $this->cache);
 		return $this->createDefaultDBConnection($this->database->getConnection()->getPdo(), $this->context->parameters['database']['dbname']);

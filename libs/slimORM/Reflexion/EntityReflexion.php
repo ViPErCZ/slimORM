@@ -27,8 +27,7 @@ class EntityReflexion
 	 * @return array
 	 * @throws \slimORM\Entity\Exception\EntityException
 	 */
-	public static function getReferences($className)
-	{
+	public static function getReferences($className) {
 		$references = array();
 		$reflection = ClassType::from($className);
 
@@ -74,8 +73,7 @@ class EntityReflexion
 	 * @param $className
 	 * @return array
 	 */
-	public static function getColumns($className)
-	{
+	public static function getColumns($className) {
 		$reflection = ClassType::from($className);
 		$arr = array();
 		foreach ($reflection->getProperties() as $property) {

@@ -5,6 +5,7 @@ namespace slimORM;
 use Nette\Database\Context;
 use Nette\Database\Table\ActiveRow;
 use Nette\Database\Table\Selection;
+use Nette\Reflection\ClassType;
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 use slimORM\Exceptions\RepositoryException;
@@ -657,7 +658,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$refEntity = $entity->$name;
 		/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
 		foreach ($references as $key => $ref) {
-			if ($ref->linkage == "OneToOne" && $ref->targetEntity != get_class($entity) && $ref->targetEntity != get_class($current)) {
+			$reflection = ClassType::from($ref->targetEntity);
+			if ($ref->linkage == "OneToOne" && $reflection->getName() != get_class($entity) && $reflection->getName() != get_class($current)) {
 				$refMappedBy = $ref->key;
 				$refName = $ref->property;
 				if ($refEntity->$refMappedBy !== NULL) { //mapped property set directly

@@ -422,8 +422,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @throws \PDOException
 	 */
 	public function save() {
+		$ownerTransaction = FALSE;
 		try {
-			$ownerTransaction = FALSE;
 			if ($this->database->getConnection()->getPdo()->inTransaction() === FALSE) {
 				$this->database->beginTransaction();
 				$ownerTransaction = TRUE;
@@ -644,18 +644,20 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Check before inserting
+	/**
 	 * @param Entity $entity
-	 * @param array $references referenced array
-	 * @param string $name
-	 * @return Entity
-	 * @throws Exceptions\RepositoryException
+	 * @param $references
+	 * @param $name
+	 * @param Entity $current
+	 * @return array|callable|null|Entity\instance
+	 * @throws RepositoryException
 	 */
-	private function beforeInsert(Entity $entity, &$references, $name) {
+	private function beforeInsert(Entity $entity, &$references, $name, Entity $current = null) {
+		/** @var Entity $refEntity */
 		$refEntity = $entity->$name;
 		/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
 		foreach ($references as $key => $ref) {
-			if ($ref->linkage == "OneToOne" && $ref->targetEntity != get_class($entity)) {
+			if ($ref->linkage == "OneToOne" && $ref->targetEntity != get_class($entity) && $ref->targetEntity != get_class($current)) {
 				$refMappedBy = $ref->key;
 				$refName = $ref->property;
 				if ($refEntity->$refMappedBy !== NULL) { //mapped property set directly
@@ -684,7 +686,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	private function recRevertInsert(Entity $entity, $reference, $name, Entity $parent) {
 		$refReferences = $entity->getReferences();
-		$entity = $this->beforeInsert($parent, $refReferences, $name);
+		$entity = $this->beforeInsert($parent, $refReferences, $name, $entity);
 		$table = EntityReflexion::getTable($reference->targetEntity);
 		$row = $this->database->table($table)->insert($entity->toArray());
 		$this->addLoop($entity);

@@ -7,13 +7,12 @@
 
 namespace slimORM;
 
-
 use Nette\Utils\Paginator;
 use slimORM\Entity\Entity;
 
 /**
- * Class BaseModel
- * @package Model\Base
+ * Class AbstractRepository
+ * @package slimORM
  */
 abstract class AbstractRepository {
 
@@ -24,6 +23,7 @@ abstract class AbstractRepository {
 	protected $entity;
 
 	/**
+	 * AbstractRepository constructor.
 	 * @param EntityManager $entityManager
 	 * @param $entity
 	 */
@@ -33,8 +33,9 @@ abstract class AbstractRepository {
 	}
 
 	/**
-	 * @param string $key
-	 * @return Entity|NULL
+	 * @param $key
+	 * @return null|Entity
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function get($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -42,8 +43,9 @@ abstract class AbstractRepository {
 	}
 
 	/**
-	 * @param Paginator $paginator
-	 * @return $this
+	 * @param Paginator|NULL $paginator
+	 * @return BaseRepository
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function read(Paginator $paginator = NULL) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -51,7 +53,18 @@ abstract class AbstractRepository {
 	}
 
 	/**
-	 * @return Entity|TRUE
+	 * @param string $columns
+	 * @return BaseRepository
+	 * @throws Exceptions\RepositoryException
+	 */
+	public function select($columns) {
+		$repository = $this->entityManager->getRepository($this->entity);
+		return $repository->select($columns);
+	}
+
+	/**
+	 * @return bool
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function save() {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -60,7 +73,8 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param Entity $entity
-	 * @return $this
+	 * @return BaseRepository
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function push(Entity $entity) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -70,6 +84,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return Entity[]|NULL
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetchAll() {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -78,6 +93,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return Entity
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetch() {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -86,7 +102,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param string $key
-	 * @param null $value
+	 * @param null|string $value
 	 * @return array
 	 * @throws Exceptions\RepositoryException
 	 */
@@ -98,7 +114,8 @@ abstract class AbstractRepository {
 	/**
 	 * @param $condition
 	 * @param array $parameters
-	 * @return $this
+	 * @return BaseRepository
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function where($condition, $parameters = array()) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -106,9 +123,9 @@ abstract class AbstractRepository {
 	}
 
 	/**
-	 * @param mixed $key
+	 * @param $key
 	 * @return $this
-	 * @throws \slimORM\Exceptions\RepositoryException
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function wherePrimary($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -127,13 +144,14 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return int|null
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function getLastInsertID() {
 		return $this->entityManager->getRepository($this->entity)->getLastInsertID();
 	}
 
 	/**
-	 *
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function clear() {
 		$this->entityManager->getRepository($this->entity)->clear();

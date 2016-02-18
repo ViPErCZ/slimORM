@@ -1,6 +1,6 @@
 <?php
 
-namespace Model\Base\Entity\Exceptions;
+namespace slimORM\Entity\Exception;
 
 /**
  * Description of EntityException

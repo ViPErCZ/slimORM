@@ -13,10 +13,13 @@ define('LIBS_DIR', WWW_DIR . '/libs');
 define('MODELS_DIR', APP_DIR . '/models');
 
 // absolute filesystem path to the temp
-define('TEMP_DIR', APP_DIR . '/temp');
+define('TEMP_DIR', WWW_DIR . '/temp');
 
 // absolute filesystem path to the log
 define('LOGS_DIR', WWW_DIR.'/log');
 
-// load bootstrap file
-require APP_DIR . '/bootstrap.php';
+$container = require __DIR__ . '/app/bootstrap.php';
+
+if (!defined('__PHPUNIT_PHAR__')) {
+	$container->getByType('Nette\Application\Application')->run();
+}

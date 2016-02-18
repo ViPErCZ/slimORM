@@ -1,33 +1,35 @@
 <?php
 /**
- * User: Martin
- * Date: 13.12.13
- * Time: 7:48
+ * Created by PhpStorm.
+ * User: viper
+ * Date: 6.6.14
+ * Time: 15:28
  */
 
 namespace Model\Contact;
 
 
-use slimORM\AbstractRepository;
-use Model\Contact\Entity\Contact;
 use Nette\Utils\Paginator;
+use slimORM\AbstractRepository;
+use Model\Contact\Entity\Phone;
 use slimORM\EntityManager;
 
-class ContactRepository extends AbstractRepository {
+class PhoneRepository extends AbstractRepository {
 
-	const ENTITY = '\Model\Contact\Entity\Contact';
+	/** Entity Class */
+	const ENTITY = '\Model\Contact\Entity\Phone';
 
 	/**
 	 * @param EntityManager $entityManager
 	 */
 	public function __construct(EntityManager $entityManager) {
 		$this->entityManager = $entityManager;
-		$this->entity = ContactRepository::ENTITY;
+		$this->entity = PhoneRepository::ENTITY;
 	}
 
 	/**
 	 * @param string $key
-	 * @return Contact|NULL
+	 * @return Phone|NULL
 	 */
 	public function get($key) {
 		return parent::get($key);
@@ -35,29 +37,29 @@ class ContactRepository extends AbstractRepository {
 
 	/**
 	 * @param Paginator $paginator
-	 * @return ContactRepository
+	 * @return PhoneRepository
 	 */
 	public function read(Paginator $paginator = NULL) {
 		return parent::read($paginator);
 	}
 
 	/**
-	 * @return Contact|TRUE
+	 * @return Phone|TRUE
 	 */
 	public function save() {
 		return parent::save();
 	}
 
 	/**
-	 * @param Contact $entity
-	 * @return ContactRepository
+	 * @param Phone $book
+	 * @return PhoneRepository
 	 */
-	public function push(Contact $entity) {
-		return parent::push($entity);
+	public function push(Phone $book) {
+		return parent::push($book);
 	}
 
 	/**
-	 * @return Contact[]
+	 * @return Phone[]
 	 */
 	public function fetchAll() {
 		return parent::fetchAll();

@@ -10,6 +10,11 @@ namespace Model\Contact\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Rel2
+ * @table rel2
+ * @package Model\Contact\Entity
+ */
 class Rel2 extends Entity {
 
 	/**
@@ -32,11 +37,43 @@ class Rel2 extends Entity {
 	protected $rel1;
 
 	/**
+	 * @param int $rel2ID
+	 */
+	public function setRel2ID($rel2ID)
+	{
+		$this->rel2ID = $rel2ID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name)
 	{
 		$this->name = (string)$name;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @return \Model\Contact\Entity\Rel1
+	 */
+	public function getRel1()
+	{
+		return $this->rel1;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getRel2ID()
+	{
+		return $this->rel2ID;
 	}
 
 } 

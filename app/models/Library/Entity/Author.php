@@ -11,6 +11,11 @@ namespace Model\Library\Entity;
 use Model\Contact\Entity\Contact;
 use slimORM\Entity\Entity;
 
+/**
+ * Class Author
+ * @table author
+ * @package Model\Library\Entity
+ */
 class Author extends Entity {
 
 	/**
@@ -65,6 +70,30 @@ class Author extends Entity {
 	protected $contact;
 
 	/**
+	 * @param int $bookID
+	 */
+	public function setBookID($bookID)
+	{
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @param int $contactID
+	 */
+	public function setContactID($contactID)
+	{
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @param int $languageID
+	 */
+	public function setLanguageID($languageID)
+	{
+		$this->languageID = $languageID;
+	}
+
+	/**
 	 * @param int $authorID
 	 */
 	public function setAuthorID($authorID)
@@ -102,4 +131,67 @@ class Author extends Entity {
 		$this->contact = $contact;
 	}
 
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getAuthorID()
+	{
+		return $this->authorID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Book
+	 */
+	public function getBook()
+	{
+		return $this->book;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getBookID()
+	{
+		return $this->bookID;
+	}
+
+	/**
+	 * @return \Model\Contact\Entity\Contact
+	 */
+	public function getContact()
+	{
+		return $this->contact;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getContactID()
+	{
+		return $this->contactID;
+	}
+
+	/**
+	 * @return \Model\Library\Entity\Language
+	 */
+	public function getLanguage()
+	{
+		return $this->language;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getLanguageID()
+	{
+		return $this->languageID;
+	}
 } 

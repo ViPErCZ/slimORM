@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Librarian
+ * @table librarian
+ * @package Model\Library\Entity
+ */
 class Librarian extends Entity {
 
 	/**
@@ -59,6 +64,14 @@ class Librarian extends Entity {
 	public function setName($name)
 	{
 		$this->name = (string)$name;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
 	}
 
 } 

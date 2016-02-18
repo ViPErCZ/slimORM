@@ -8,18 +8,70 @@
 namespace Model\Library;
 
 
-use Nette\Database\Connection;
-use slimORM\BaseRepository;
+use Model\Library\Entity\Author;
+use Nette\Utils\Paginator;
+use slimORM\AbstractRepository;
+use slimORM\EntityManager;
 
-class AuthorRepository extends BaseRepository {
+class AuthorRepository extends AbstractRepository {
 
-	const TABLE = "author";
 	const ENTITY = 'Model\Library\Entity\Author';
 
-	/** Construct
-	 * @param Connection $database
+	/** Constructor
+	 * @param EntityManager $entityManager
 	 */
-	public function __construct(Connection $database) {
-		parent::__construct($database, AuthorRepository::TABLE, AuthorRepository::ENTITY);
+	public function __construct(EntityManager $entityManager)
+	{
+		$this->entityManager = $entityManager;
+		$this->entity = AuthorRepository::ENTITY;
+	}
+
+	/**
+	 * @param string $key
+	 * @return Author|NULL
+	 */
+	public function get($key) {
+		return parent::get($key);
+	}
+
+	/**
+	 * @param Paginator $paginator
+	 * @return AuthorRepository
+	 */
+	public function read(Paginator $paginator = NULL) {
+		return parent::read($paginator);
+	}
+
+	/**
+	 * @param bool $needTransaction
+	 * @param Author $library
+	 * @return Author|TRUE
+	 */
+	public function save() {
+		return parent::save();
+	}
+
+	/**
+	 * @param Author $library
+	 * @return AuthorRepository
+	 */
+	public function push(Author $library) {
+		return parent::push($library);
+	}
+
+	/**
+	 * @return Author
+	 */
+	public function fetch() {
+		return parent::fetch();
+	}
+
+	/**
+	 * @param $condition
+	 * @param array $parameters
+	 * @return AuthorRepository
+	 */
+	public function where($condition, $parameters = array()) {
+		return parent::where($condition, $parameters = array());
 	}
 } 

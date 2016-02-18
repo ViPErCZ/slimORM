@@ -10,6 +10,11 @@ namespace Model\MySelf\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Myself
+ * @table myself
+ * @package Model\MySelf\Entity
+ */
 class Myself extends Entity {
 
 	/**
@@ -38,6 +43,22 @@ class Myself extends Entity {
 	protected $child;
 
 	/**
+	 * @param int $childID
+	 */
+	public function setChildID($childID)
+	{
+		$this->childID = $childID;
+	}
+
+	/**
+	 * @param int $myselfID
+	 */
+	public function setMyselfID($myselfID)
+	{
+		$this->myselfID = $myselfID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name)
@@ -48,9 +69,41 @@ class Myself extends Entity {
 	/**
 	 * @param \Model\MySelf\Entity\Myself $child
 	 */
-	public function setChild(Myself $child)
+	public function setChild(Myself $child = NULL)
 	{
 		$this->child = $child;
+	}
+
+	/**
+	 * @return \Model\MySelf\Entity\Myself
+	 */
+	public function getChild()
+	{
+		return $this->child;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getChildID()
+	{
+		return $this->childID;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMyselfID()
+	{
+		return $this->myselfID;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
 	}
 
 } 

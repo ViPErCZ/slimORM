@@ -8,8 +8,14 @@
 namespace Model\Contact\Entity;
 
 
+use Model\Contact\PhoneRepository;
 use slimORM\Entity\Entity;
 
+/**
+ * Class Contact
+ * @table contact
+ * @package Model\Contact\Entity
+ */
 class Contact extends Entity {
 
 	/**
@@ -40,9 +46,25 @@ class Contact extends Entity {
 	/**
 	 * @reference phone
 	 * @OneToMany(targetEntity="Model\Contact\Entity\Phone", mappedBy="contactID")
-	 * @var array
+	 * @var PhoneRepository
 	 */
 	protected $phones;
+
+	/**
+	 * @param int $contactID
+	 */
+	public function setContactID($contactID)
+	{
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @param int $rel1ID
+	 */
+	public function setRel1ID($rel1ID)
+	{
+		$this->rel1ID = $rel1ID;
+	}
 
 	/**
 	 * @param string $address
@@ -55,16 +77,55 @@ class Contact extends Entity {
 	 * Add Phone
 	 * @param Phone $phone
 	 */
-	public function addPhone(Phone $phone) {
+	public function addPhones(Phone $phone) {
 		$this->phones[] = $phone;
 	}
 
 	/**
 	 * @param \Model\Contact\Entity\Rel1 $rel1
 	 */
-	public function setRel1(Rel1 $rel1)
+	public function setRel1(Rel1 $rel1 = NULL)
 	{
 		$this->rel1 = $rel1;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAddress()
+	{
+		return $this->address;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getContactID()
+	{
+		return $this->contactID;
+	}
+
+	/**
+	 * @return PhoneRepository
+	 */
+	public function getPhones() {
+		return $this->phones;
+	}
+
+	/**
+	 * @return \Model\Contact\Entity\Rel1
+	 */
+	public function getRel1()
+	{
+		return $this->rel1;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getRel1ID()
+	{
+		return $this->rel1ID;
 	}
 
 } 

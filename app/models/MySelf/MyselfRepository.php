@@ -8,19 +8,67 @@
 namespace Model\MySelf;
 
 
-use Nette\Database\Connection;
-use slimORM\BaseRepository;
+use slimORM\AbstractRepository;
+use Model\MySelf\Entity\Myself;
+use Nette\Utils\Paginator;
+use slimORM\EntityManager;
 
-class MyselfRepository extends BaseRepository {
+class MyselfRepository extends AbstractRepository {
 
-	const TABLE = "myself";
 	const ENTITY = '\Model\Myself\Entity\Myself';
 
 	/**
-	 * Construct
-	 * @param Connection $connection
+	 * @param EntityManager $entityManager
 	 */
-	public function __construct(Connection $connection) {
-		parent::__construct($connection, MyselfRepository::TABLE, MyselfRepository::ENTITY);
+	public function __construct(EntityManager $entityManager) {
+		$this->entityManager = $entityManager;
+		$this->entity = MyselfRepository::ENTITY;
+	}
+
+	/**
+	 * @param string $key
+	 * @return Myself|NULL
+	 */
+	public function get($key) {
+		return parent::get($key);
+	}
+
+	/**
+	 * @param Paginator $paginator
+	 * @return MyselfRepository
+	 */
+	public function read(Paginator $paginator = NULL) {
+		return parent::read($paginator);
+	}
+
+	/**
+	 * @return Myself|TRUE
+	 */
+	public function save() {
+		return parent::save();
+	}
+
+	/**
+	 * @param Myself $entity
+	 * @return MyselfRepository
+	 */
+	public function push(Myself $entity) {
+		return parent::push($entity);
+	}
+
+	/**
+	 * @return Myself
+	 */
+	public function fetch() {
+		return parent::fetch();
+	}
+
+	/**
+	 * @param $condition
+	 * @param array $parameters
+	 * @return MyselfRepository
+	 */
+	public function where($condition, $parameters = array()) {
+		return parent::where($condition, $parameters = array());
 	}
 } 

@@ -10,6 +10,11 @@ namespace Model\Library\Entity;
 
 use slimORM\Entity\Entity;
 
+/**
+ * Class Attachment
+ * @table attachment
+ * @package Model\Library\Entity
+ */
 class Attachment extends Entity {
 
 	/**
@@ -25,10 +30,34 @@ class Attachment extends Entity {
 	protected $name;
 
 	/**
+	 * @param int $attachmentID
+	 */
+	public function setAttachmentID($attachmentID)
+	{
+		$this->attachmentID = $attachmentID;
+	}
+
+	/**
 	 * @param string $name
 	 */
 	public function setName($name) {
 		$this->name = (string)$name;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getAttachmentID()
+	{
+		return $this->attachmentID;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getName()
+	{
+		return $this->name;
 	}
 
 } 

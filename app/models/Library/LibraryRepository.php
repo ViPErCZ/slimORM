@@ -7,22 +7,52 @@
 
 namespace Model\Library;
 
-
+use slimORM\AbstractRepository;
 use Model\Library\Entity\Library;
-use Nette\Database\Connection;
-use slimORM\BaseRepository;
-use slimORM\Entity\Entity;
-use slimORM\Exceptions\RepositoryException;
+use Nette\Utils\Paginator;
+use slimORM\EntityManager;
 
-class LibraryRepository extends BaseRepository {
+class LibraryRepository extends AbstractRepository {
 
-	const TABLE = "library";
-	const ENTITY = 'Model\Library\Entity\Library';
+	/** Entity Class */
+	const ENTITY = '\Model\Library\Entity\Library';
 
-	/** Construct
-	 * @param Connection $database
+	/** Constructor
+	 * @param EntityManager $entityManager
 	 */
-	public function __construct(Connection $database) {
-		parent::__construct($database, LibraryRepository::TABLE, LibraryRepository::ENTITY);
+	public function __construct(EntityManager $entityManager) {
+		$this->entityManager = $entityManager;
+		$this->entity = LibraryRepository::ENTITY;
+	}
+
+	/**
+	 * @param string $key
+	 * @return Library|NULL
+	 */
+	public function get($key) {
+		return parent::get($key);
+	}
+
+	/**
+	 * @param Paginator $paginator
+	 * @return LibraryRepository
+	 */
+	public function read(Paginator $paginator = NULL) {
+		return parent::read($paginator);
+	}
+
+	/**
+	 * @return Library|TRUE
+	 */
+	public function save() {
+		return parent::save();
+	}
+
+	/**
+	 * @param Library $library
+	 * @return LibraryRepository
+	 */
+	public function push(Library $library) {
+		return parent::push($library);
 	}
 } 

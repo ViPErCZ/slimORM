@@ -5,12 +5,28 @@ use Nette\Database\Connection;
 use Nette\DI\Container;
 
 /**
- * Description of BaseDbTest
- *
- * @author Martin Chudoba
- * @backupGlobals disabled
- * @backupStaticAttributes disabled
- *   
+ * Disables foreign key checks temporarily.
+ */
+class TruncateOperation extends \PHPUnit_Extensions_Database_Operation_Truncate {
+	public function execute(\PHPUnit_Extensions_Database_DB_IDatabaseConnection $connection,
+							\PHPUnit_Extensions_Database_DataSet_IDataSet $dataSet) {
+		$connection->getConnection()->query("SET foreign_key_checks = 0");
+		parent::execute($connection, $dataSet);
+		$connection->getConnection()->query("SET foreign_key_checks = 1");
+	}
+}
+
+class InsertOperation extends \PHPUnit_Extensions_Database_Operation_Insert {
+	public function execute(\PHPUnit_Extensions_Database_DB_IDatabaseConnection $connection,
+							\PHPUnit_Extensions_Database_DataSet_IDataSet $dataSet) {
+		$connection->getConnection()->query("SET foreign_key_checks = 0");
+		parent::execute($connection, $dataSet);
+		$connection->getConnection()->query("SET foreign_key_checks = 1");
+	}
+}
+
+/**
+ * Class BaseDbTest
  */
 abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	/** @var Container */
@@ -45,20 +61,24 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	
 	/** Abstract metod declaration ************************* */
 	/** **************************************************** */
-	
-	protected function getSetUpOperation() {
-		$this->getConnection()->getConnection()->query("SET foreign_key_checks = 0;")->execute();
-		$result = $this->getOperations()->INSERT();
-		$this->getConnection()->getConnection()->query("SET foreign_key_checks = 1")->execute();
-		return $result;
-	}
 
 	protected function getTearDownOperation() {
-		$this->getConnection()->getConnection()->query("SET foreign_key_checks = 0;")->execute();
-		$result = $this->getOperations()->DELETE_ALL();
-		$this->getConnection()->getConnection()->query("SET foreign_key_checks = 1")->execute();
-		
-		return $result;
-		//return PHPUnit_Extensions_Database_Operation_Factory::NONE();
+		$cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
+
+		return new \PHPUnit_Extensions_Database_Operation_Composite(array(
+			new TruncateOperation($cascadeTruncates)
+		));
+	}
+
+	/**
+	 * @see PHPUnit_Extensions_Database_TestCase::getSetUpOperation ()
+	 */
+	protected function getSetUpOperation () {
+		$cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
+
+		return new \PHPUnit_Extensions_Database_Operation_Composite(array(
+			new TruncateOperation($cascadeTruncates),
+			new InsertOperation()
+		));
 	}
 }

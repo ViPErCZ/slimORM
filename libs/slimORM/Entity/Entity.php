@@ -195,11 +195,11 @@ abstract class Entity extends Object {
 		}
 	}
 
-    /**
-     * Returns property value. Do not call directly.
-     * @param $name
-     * @return array|callable|null|instance
-     */
+	/**
+	 * @param $name
+	 * @return array|callable|mixed|null|\slimORM\BaseRepository|instance
+	 * @throws EntityException
+	 */
     public function &__get($name) {
 		$getter = "get".ucfirst($name);
 		$reflection = ClassType::from(get_class($this));
@@ -260,14 +260,13 @@ abstract class Entity extends Object {
 	 * @internal
 	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
-	final public function __referencePrepair() {
+	final public function __referencePrepare() {
 		if ($this->toRow() === null) {
 			$references = $this->getReferences();
 
 			foreach ($references as $reference) {
 				$class = $reference->targetEntity;
 				$property = $reference->property;
-				$getter = "get" . ucfirst($property);
 				$entities = $this->$property;
 
 				if ($reference->linkage == "OneToMany" && is_array($entities)) {

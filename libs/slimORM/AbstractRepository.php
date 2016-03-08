@@ -92,7 +92,7 @@ abstract class AbstractRepository {
 	}
 
 	/**
-	 * @return Entity
+	 * @return array|Entity
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetch() {
@@ -135,7 +135,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param null|string $column
 	 * @return int
-	 * @throws \slimORM\Exceptions\RepositoryException
+	 * @throws Exceptions\RepositoryException
 	 */
 	public function count($column = null) {
 		$repository = $this->entityManager->getRepository($this->entity);

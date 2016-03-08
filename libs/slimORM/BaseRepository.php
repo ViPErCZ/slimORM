@@ -434,7 +434,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					if ($row->toRow()) {
 						$this->update($row);
 					} else {
-						$row->__referencePrepair();
+						$row->__referencePrepare();
 						$returnEntity = $this->insert($row);
 						unset($this->rows[$key]);
 						$this->rows[$returnEntity->getPrimary()] = $returnEntity;
@@ -605,7 +605,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			$mappedBy = $reference->key;
 			$getter = "get" . ucfirst($name);
 			if ($reference->linkage == "OneToMany") {
-				$entity->__referencePrepair();
+				$entity->__referencePrepare();
 			}
 			if ($entity->$getter() instanceof BaseRepository) {
 				$setter = "set" . ucfirst($mappedBy);

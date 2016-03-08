@@ -17,7 +17,8 @@ class LibraryRepository extends AbstractRepository {
 	/** Entity Class */
 	const ENTITY = '\Model\Library\Entity\Library';
 
-	/** Constructor
+	/**
+	 * LibraryRepository constructor.
 	 * @param EntityManager $entityManager
 	 */
 	public function __construct(EntityManager $entityManager) {

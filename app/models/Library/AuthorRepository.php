@@ -11,6 +11,7 @@ namespace Model\Library;
 use Model\Library\Entity\Author;
 use Nette\Utils\Paginator;
 use slimORM\AbstractRepository;
+use slimORM\Entity\Entity;
 use slimORM\EntityManager;
 
 class AuthorRepository extends AbstractRepository {
@@ -43,19 +44,17 @@ class AuthorRepository extends AbstractRepository {
 	}
 
 	/**
-	 * @param bool $needTransaction
-	 * @param Author $library
-	 * @return Author|TRUE
+	 * @return bool
 	 */
 	public function save() {
 		return parent::save();
 	}
 
 	/**
-	 * @param Author $library
-	 * @return AuthorRepository
+	 * @param Entity $library
+	 * @return \slimORM\BaseRepository
 	 */
-	public function push(Author $library) {
+	public function push(Entity $library) {
 		return parent::push($library);
 	}
 

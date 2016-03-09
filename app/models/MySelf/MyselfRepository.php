@@ -11,6 +11,7 @@ namespace Model\MySelf;
 use slimORM\AbstractRepository;
 use Model\MySelf\Entity\Myself;
 use Nette\Utils\Paginator;
+use slimORM\Entity\Entity;
 use slimORM\EntityManager;
 
 class MyselfRepository extends AbstractRepository {
@@ -49,10 +50,10 @@ class MyselfRepository extends AbstractRepository {
 	}
 
 	/**
-	 * @param Myself $entity
-	 * @return MyselfRepository
+	 * @param Entity $entity
+	 * @return \slimORM\BaseRepository
 	 */
-	public function push(Myself $entity) {
+	public function push(Entity $entity) {
 		return parent::push($entity);
 	}
 

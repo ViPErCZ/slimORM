@@ -11,8 +11,6 @@ use Nette\Caching\Cache;
 use Nette\Database\Context;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Parameter;
-use Nette\Utils\FileSystem;
-use Nette\Utils\LimitedScope;
 use slimORM\Exceptions\RepositoryException;
 use slimORM\Reflexion\EntityReflexion;
 
@@ -250,7 +248,7 @@ final class EntityManager {
 					$this->generateEntity($ref->targetEntity);
 					if ($repository) {
 						$phpDoc = "@return " . $ref->targetEntity . "[]";
-						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\") {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $ref->targetEntity . "\"";
+						$body = "if (\$this->row && \$this->$ref->property === NULL) {\n\tif (\$this->row->getTable()->getPrimary(TRUE) === \"" . $ref->key . "\" || \"" . EntityReflexion::getTable($ref->targetEntity) . "\" == \\slimORM\\Reflexion\\EntityReflexion::getTable(get_class(\$this)) ) {\n\t\t\$this->" . $ref->property . " = \$this->oneToMany(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $ref->targetEntity . "\"";
 						$body .= ");\n\t} else {\n\t\t\$this->" . $ref->property ." = \$this->oneToOne(\"" . $ref->property . "\", \"" . EntityReflexion::getTable($ref->targetEntity) . "\", \"" . $ref->key . "\", \"" . $genClassName . "\");\n\t}\n}\nreturn \$this->" . $ref->property . ";";
 					}
 					break;

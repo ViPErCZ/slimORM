@@ -11,6 +11,7 @@ namespace Model\Contact;
 use slimORM\AbstractRepository;
 use Model\Contact\Entity\Contact;
 use Nette\Utils\Paginator;
+use slimORM\Entity\Entity;
 use slimORM\EntityManager;
 
 class ContactRepository extends AbstractRepository {
@@ -49,10 +50,10 @@ class ContactRepository extends AbstractRepository {
 	}
 
 	/**
-	 * @param Contact $entity
-	 * @return ContactRepository
+	 * @param Entity $entity
+	 * @return \slimORM\BaseRepository
 	 */
-	public function push(Contact $entity) {
+	public function push(Entity $entity) {
 		return parent::push($entity);
 	}
 

@@ -54,9 +54,10 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	 */
 	protected function getConnection() {
 		$this->database = $this->context->getByType('Nette\Database\Context');
-		$this->cache = new \Nette\Caching\Cache($this->context->cacheStorage, 'slimORM');
+		$this->cache = new \Nette\Caching\Cache($this->context->getByType('Nette\Caching\IStorage'), 'slimORM');
 		$this->emanager = new \slimORM\EntityManager($this->database, $this->cache);
-		return $this->createDefaultDBConnection($this->database->getConnection()->getPdo(), $this->context->parameters['database']['dbname']);
+
+		return $this->createDefaultDBConnection($this->database->getConnection()->getPdo(), null);
 	}
 	
 	/** Abstract metod declaration ************************* */

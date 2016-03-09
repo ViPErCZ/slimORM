@@ -609,12 +609,21 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			}
 			if ($entity->$getter() instanceof BaseRepository) {
 				$setter = "set" . ucfirst($mappedBy);
-				$getterKey = "get" . ucfirst($mappedBy);
+				//$getterKey = $entity->getPrimary();
+				$table = EntityReflexion::getTable(get_class($entity));
+				$primary = $this->database->table($table)->getPrimary(true);
+				if ($primary != $mappedBy) {
+					$primaryKeyValue = $primaryKey;
+				} else {
+					$method = "get" . ucfirst($mappedBy);
+					$primaryKeyValue = $entity->$method();
+				}
+
 				$iter = 0;
 				foreach ($entity->$name as $item) {
 					if ($iter === 0)$this->addLoop($item);
 					if ($item->toRow() === NULL) {
-						$item->$setter($entity->$getterKey());
+						$item->$setter($primaryKeyValue);
 					}
 					$iter++;
 				}

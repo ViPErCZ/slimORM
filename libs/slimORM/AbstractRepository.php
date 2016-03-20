@@ -59,7 +59,19 @@ abstract class AbstractRepository {
 	 */
 	public function select($columns) {
 		$repository = $this->entityManager->getRepository($this->entity);
+		if ($this->containSelectPrimaryKey($columns) === false) {
+			$columns .= "," . $repository->getPrimaryKey();
+		}
 		return $repository->select($columns);
+	}
+
+	/**
+	 * @param $columns
+	 * @return bool
+	 * @throws Exceptions\RepositoryException
+	 */
+	protected function containSelectPrimaryKey($columns) {
+		return strpos($columns, $this->entityManager->getRepository($this->entity)->getPrimaryKey()) !== false;
 	}
 
 	/**

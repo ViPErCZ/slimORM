@@ -75,6 +75,18 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		return $result;
 	}
 
+	/**
+	 * @return NULL|string
+	 */
+	public function getPrimaryKey() {
+		$key = $this->database->table($this->table)->getPrimary(true);
+		if (is_array($key)) {
+			return array_values($key)[0];
+		} else {
+			return $key;
+		}
+	}
+
 	/** Vytvoří novou entitu
 	 * 
 	 * @param ActiveRow $row
@@ -83,7 +95,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @throws RepositoryException
 	 */
 	protected function createEntity(ActiveRow $row, $refresh = FALSE) {
-		$primary = $row->getPrimary();
+		$primary = $row->getPrimary(true);
 		if (is_int($primary)) {
 			if ($refresh) {
 				$this->rows[$primary] = new $this->entity($this->buildSql()->get($primary));
@@ -144,11 +156,22 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @throws RepositoryException
 	 */
 	public function select($columns) {
-		if ($this->selection)
+		if ($this->selection) {
+			if ($this->containSelectPrimaryKey($columns) === false) {
+				$columns .= "," . $this->getPrimaryKey();
+			}
 			$this->selection->select($columns);
-		else
+		} else
 			throw new RepositoryException("Before using the function select(...) call read(...).");
 		return $this;
+	}
+
+	/**
+	 * @param $columns
+	 * @return bool
+	 */
+	protected function containSelectPrimaryKey($columns) {
+		return strpos($columns, $this->getPrimaryKey()) !== false;
 	}
 
 	/**

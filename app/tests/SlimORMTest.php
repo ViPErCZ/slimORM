@@ -46,6 +46,31 @@ class SlimORMTest extends BaseDbTest {
 		$this->assertEquals($references['books']->property, "books");
 	}
 
+	// Select method test
+	public function testSelect() {
+		$authorRepository = new AuthorRepository($this->emanager);
+		$authors = $authorRepository->read()->select("authorID, name");
+
+		/** @var Author $author */
+		foreach ($authors as $author) {
+			$this->assertEquals($author->getLanguageID(), null);
+		}
+	}
+
+	/**
+	 *
+	 */
+	public function testSelectException() {
+		$authorRepository = new AuthorRepository($this->emanager);
+		// do not return Exception because primary key automatic added - equal previous test
+		$authors = $authorRepository->read()->select("name");
+
+		/** @var Author $author */
+		foreach ($authors as $author) {
+			$this->assertEquals($author->getLanguageID(), null);
+		}
+	}
+
 	// Read attachments read
 	public function testReadAttachments() {
 		$libraryRepository = new \Model\Library\LibraryRepository($this->emanager);

@@ -2,6 +2,7 @@
 
 namespace slimORM\Entity;
 use Nette\Database\Table\ActiveRow;
+use Nette\MemberAccessException;
 use Nette\Object;
 use Nette\ObjectMixin;
 use Nette\Reflection\ClassType;
@@ -189,8 +190,13 @@ abstract class Entity extends Object {
 	 */
 	final protected function evaluated() {
 		if ($this->row) {
-			foreach ($this->getColumns() as $property) {
-				$this->$property['name'] = $this->row->$property['name'];
+			foreach ($this->row->toArray() as $key => $item) {
+				foreach ($this->getColumns() as $column) {
+					if ($column['name'] === $key) {
+						$this->$key = $item;
+						break;
+					}
+				}
 			}
 		}
 	}

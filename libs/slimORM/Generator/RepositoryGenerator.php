@@ -81,7 +81,7 @@ class RepositoryGenerator {
 		$entity->addMethod("select")
 			->setParameters(array($parameter))
 			->setDocuments(array("@param string \$columns", "@return " . ucfirst($tableName) . "Repository", "@throws \\slimORM\\Exceptions\\RepositoryException"))
-			->setBody("\$repository = \$this->entityManager->getRepository(\$this->entity);\nreturn \$repository->select(\$columns);");
+			->setBody("\$repository = \$this->entityManager->getRepository(\$this->entity);\nif (\$this->containSelectPrimaryKey(\$columns) === false) {\n\t\$columns .= \",\" . \$repository->getPrimaryKey();\n}\nreturn \$repository->select(\$columns);");
 
 		$entity->addMethod("save")
 			->setDocuments(array("@return bool", "@throws \\slimORM\\Exceptions\\RepositoryException"))

@@ -4,6 +4,7 @@ namespace slimORM;
 
 use Nette\Database\Context;
 use Nette\Database\Table\ActiveRow;
+use Nette\Database\Table\IRow;
 use Nette\Database\Table\Selection;
 use Nette\Reflection\ClassType;
 use Nette\Utils\Paginator;
@@ -140,6 +141,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		if (isset($this->rows[(int) $key])) {
 			return $this->rows[(int) $key];
 		} else {
+			/** @var ActiveRow|false $item */
 			$item = $this->buildSql()->get((int) $key);
 			if ($item) {
 				return $this->createEntity($item);
@@ -301,7 +303,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	/**
 	 * Returns all rows as associative array.
 	 * @param  string
-	 * @param  string column name used for an array value or NULL for the whole row
+	 * @param  string $value name used for an array value or NULL for the whole row
 	 * @return array
 	 */
 	public function fetchPairs($key, $value = NULL) {
@@ -318,6 +320,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	public function fetchAll() {
 		if ($this->selection) {
+			/** @var ActiveRow $entity */
 			foreach ($this->selection as $entity) {
 				$this->createEntity($entity);
 			}
@@ -483,8 +486,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 */
 	protected function update(Entity $entity) {
 		$this->updateActiveRow($entity);
-		$primaryKey = (int)$entity->toRow()->getPrimary(TRUE);
-		$this->referencesUpdate($entity, $primaryKey, $entity->getLoadedReferences());
+		$this->referencesUpdate($entity, $entity->getLoadedReferences());
 	}
 
 	/** Update ActiveRow in current Entity
@@ -505,14 +507,11 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		$this->addLoop($entity);
 	}
 
-	/** Recursive references update
+	/**
 	 * @param Entity $entity
-	 * @param int $primaryKey Primary key value
 	 * @param array $references
-	 * @param Entity $parent
-	 * @throws \ReflectionException
 	 */
-	private function referencesUpdate(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
+	private function referencesUpdate(Entity $entity, array $references) {
 		foreach ($references as $reference) {
 			$name = $reference->property;
 			$mappedBy = $reference->key;
@@ -522,6 +521,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$getterKey = "get" . ucfirst($mappedBy);
 				if ($entity->$getter()->isEmpty() === FALSE) {
 					$iter = 0;
+					/** @var Entity $item */
 					foreach ($entity->$getter() as $item) {
 						if ($iter === 0)$this->addLoop($item);
 						if ($item->toRow() === NULL) {
@@ -533,6 +533,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					$entity->$getter()->save();
 				}
 			} else {
+				/** @var Entity|null $refEntity */
 				$refEntity = $entity->$getter();
 				if ($refEntity) {
 					if ($this->checkLoop($refEntity)) {
@@ -540,49 +541,41 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					}
 					if ($refEntity->toRow()) {
 						$this->updateActiveRow($refEntity);
-						$this->referencesUpdate($refEntity, $refEntity->toRow()->getPrimary(), $refEntity->getReferences(), $entity);
+						$this->referencesUpdate($refEntity, $refEntity->getReferences());
 					} else {
 						$getterKey = "get" . ucfirst($mappedBy);
 						$refEntity->$mappedBy = $entity->$getterKey();
 						$table = EntityReflexion::getTable($reference->targetEntity);
 						$row = $this->database->table($table)->insert($refEntity->toArray());
 						$this->addLoop($refEntity);
-						$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences(), $entity);
+						$this->referencesInsert($refEntity, $row->getPrimary(), $refEntity->getReferences());
 					}
 				}
 			}
 		}
 	}
 
-	/** Helper function
-	 * @param string $name
-	 * @param array $properties
-	 * @return bool
-	 */
-	private function searchProperty($name, array $properties) {
-		foreach ($properties as $property) {
-			if ($name == $property['name'])
-				return true;
-		}
-		return false;
-	}
-
 	/**
-	 * Insert entity to database
 	 * @param Entity $entity
 	 * @return Entity
+	 * @throws RepositoryException
 	 */
 	protected function insert(Entity $entity) {
 		$this->beforeCheckedReferences($entity);
+		/** @var ActiveRow|bool|int $row */
 		$row = $this->buildSql()->insert($entity->toArray());
-		$newEntity = $this->createEntity($row, TRUE);
-		$primaryKey = $row->getPrimary();
-		$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
-		$entity->$primaryName = $primaryKey;
-		$this->addLoop($entity);
-		$references = $entity->getReferences();
-		$this->referencesInsert($entity, $primaryKey, $references);
-		return $newEntity;
+		if (is_bool($row) || is_int($row)) {
+			throw new RepositoryException("Table \"" . EntityReflexion::getTable($entity) . "\" has no primary key.");
+		} else {
+			$newEntity = $this->createEntity($row, TRUE);
+			$primaryKey = $row->getPrimary();
+			$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
+			$entity->$primaryName = $primaryKey;
+			$this->addLoop($entity);
+			$references = $entity->getReferences();
+			$this->referencesInsert($entity, $primaryKey, $references);
+			return $newEntity;
+		}
 	}
 
 	/**
@@ -597,6 +590,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 			$primaryName = $this->database->table(EntityReflexion::getTable($entity))->getPrimary();
 
 			if ($entity->$name instanceof Entity && $entity->$name !== NULL && $reference->linkage == "OneToOne" && $primaryName !== $mappedBy) {
+				/** @var Entity $refEntity */
 				$refEntity = $entity->$name;
 				$table = EntityReflexion::getTable($reference->targetEntity);
 				if ($reference->canBeNULL === FALSE && $mappedBy == $this->database->table($table)->getPrimary()
@@ -614,15 +608,13 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 		}
 	}
 
-	/** Recursive insert
+	/**
 	 * @param Entity $entity
 	 * @param $primaryKey
 	 * @param array $references
-	 * @param Entity $parent
-	 * @throws Exceptions\RepositoryException
-	 * @throws \ReflectionException
+	 * @throws RepositoryException
 	 */
-	private function referencesInsert(Entity $entity, $primaryKey, array $references, Entity $parent = NULL) {
+	private function referencesInsert(Entity $entity, $primaryKey, array $references) {
 		foreach ($references as $reference) {
 			$name = $reference->property;
 			$mappedBy = $reference->key;
@@ -643,6 +635,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				}
 
 				$iter = 0;
+				/** @var Entity $item */
 				foreach ($entity->$name as $item) {
 					if ($iter === 0)$this->addLoop($item);
 					if ($item->toRow() === NULL) {
@@ -653,6 +646,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 				$entity->$getter()->setLoop($this->protectLoop);
 				$entity->$getter()->save();
 			} else {
+				/** @var Entity|null $refEntity */
 				$refEntity = $entity->$name;
 				if ($refEntity) {
 					if ($this->checkLoop($refEntity)) {
@@ -663,6 +657,7 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 					$refEntityReferences = $refEntity->getReferences();
 
 					/** Kontrola jestli není potřeba referenci uložit dříve než samotnou entitu */
+					/** @var Entity $refEntity */
 					$refEntity = $this->beforeInsert($entity, $refEntityReferences, $name);
 
 					$table = EntityReflexion::getTable($reference->targetEntity);
@@ -681,8 +676,8 @@ abstract class BaseRepository implements \IteratorAggregate, \Countable {
 	 * @param Entity $entity
 	 * @param $references
 	 * @param $name
-	 * @param Entity $current
-	 * @return array|callable|null|Entity\instance
+	 * @param Entity|null $current
+	 * @return Entity
 	 * @throws RepositoryException
 	 */
 	private function beforeInsert(Entity $entity, &$references, $name, Entity $current = null) {

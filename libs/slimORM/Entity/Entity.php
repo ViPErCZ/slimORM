@@ -4,8 +4,8 @@ namespace slimORM\Entity;
 use Nette\Database\Table\ActiveRow;
 use Nette\MemberAccessException;
 use Nette\Object;
-use Nette\ObjectMixin;
 use Nette\Reflection\ClassType;
+use Nette\Utils\ObjectMixin;
 use slimORM\Entity\Exception\EntityException;
 use slimORM\EntityManager;
 use slimORM\Reflexion\EntityReflexion;
@@ -217,6 +217,7 @@ abstract class Entity extends Object {
 			$references = $this->getReferences();
 			if ($this->$name === NULL) {
 				if (array_key_exists($name, $references) === TRUE && $this->row) {
+					$val = null;
 					switch($references[$name]->linkage) {
 						case 'OneToMany':
 							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {

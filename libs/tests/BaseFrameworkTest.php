@@ -6,14 +6,14 @@
  * @author Martin Chudoba
  */
 abstract class BaseFrameworkTest extends PHPUnit_Framework_TestCase {
-	/** @var \SystemContainer|Nette\DI\Container */
+	/** @var \Nette\DI\Container */
 	protected $context;
-	
-	/** Konstruktor
-	 * 
+
+	/**
+	 * BaseFrameworkTest constructor.
 	 */
 	public function __construct() {
-		$this->context = Nette\Environment::getContext();
+		$this->context = System::$context;
 	}
 }
 

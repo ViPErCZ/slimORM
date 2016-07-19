@@ -45,7 +45,7 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	 *
 	 */
 	public function __construct() {
-		$this->context = Environment::getContext();
+		$this->context = System::$context;
 	}
 	
 	/** Vrací připojení na databázi

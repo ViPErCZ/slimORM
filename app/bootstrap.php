@@ -8,6 +8,7 @@ $configurator->setTempDirectory(__DIR__ . '/../temp');
 $configurator->createRobotLoader()
 	->addDirectory(APP_DIR)
 	->addDirectory(LIBS_DIR)
+	->addDirectory(APP_DIR . '/tests/')
 	->register();
 
 $configurator->addConfig(__DIR__ . '/config/config.neon');
@@ -18,5 +19,6 @@ if (file_exists(__DIR__ . '/config/config.local.neon')) {
 }
 
 $container = $configurator->createContainer();
+System::$context = $container;
 
 return $container;

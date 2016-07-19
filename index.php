@@ -23,3 +23,5 @@ $container = require __DIR__ . '/app/bootstrap.php';
 if (!defined('__PHPUNIT_PHAR__')) {
 	$container->getByType('Nette\Application\Application')->run();
 }
+
+return $container;

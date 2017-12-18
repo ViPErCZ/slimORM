@@ -3,12 +3,9 @@
 namespace slimORM\Entity\Exception;
 
 /**
- * Description of EntityException
- *
- * @author Martin Chudoba
+ * Class EntityException
+ * @package slimORM\Entity\Exception
  */
 class EntityException extends \Exception {
 	//put your code here
 }
-
-?>

@@ -1,7 +1,7 @@
 <?php
 
 $phpUnitTest = TRUE; // zajistí, aby se spustil Nette framework (application->run())
-require_once dirname(__FILE__) . "/../../index.php";
+require_once __DIR__ . '/../../index.php';
 
 /**
  * Created by PhpStorm.
@@ -15,7 +15,7 @@ class SqlParserTest extends BaseFrameworkTest {
 		$sqlParser = new \slimORM\Generator\SqlParser(WWW_DIR . "/navrhy/slimorm.sql");
 		$tables = $sqlParser->getTables();
 
-		$this->assertEquals(count($tables), 12);
+		$this->assertCount(12, $tables);
 		$this->assertInstanceOf('slimORM\Generator\Sql\Table', $tables['library']);
 		$this->assertEquals($tables['library']->getName(), "library");
 

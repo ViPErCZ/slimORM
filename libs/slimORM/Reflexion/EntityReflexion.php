@@ -1,38 +1,34 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: viper
- * Date: 11.3.14
- * Time: 19:42
- */
-
 namespace slimORM\Reflexion;
 
 use Nette\Reflection\ClassType;
 use Nette\StaticClassException;
 use slimORM\Entity\Exception\EntityException;
 
-class EntityReflexion
-{
+/**
+ * Class EntityReflexion
+ * @package slimORM\Reflexion
+ */
+class EntityReflexion {
 	/**
 	 * Static class - cannot be instantiated.
+	 * @throws \Nette\StaticClassException
 	 */
 	final public function __construct() {
-		throw new StaticClassException;
+		throw new StaticClassException('');
 	}
 
 	/**
-	 * Vrací reference a jejich parametry
 	 * @param $className
 	 * @return array
-	 * @throws \slimORM\Entity\Exception\EntityException
+	 * @throws EntityException
 	 */
-	public static function getReferences($className) {
+	public static function getReferences($className): array {
 		$references = array();
 		$reflection = ClassType::from($className);
 
 		foreach ($reflection->getProperties() as $property) {
-			if ($property->hasAnnotation("reference") === TRUE) {
+			if ($property->hasAnnotation('reference') === TRUE) {
 				$ref = new \stdClass();
 				$ref->property = $property->getName();
 				if ($property->hasAnnotation("OneToOne") === TRUE) {

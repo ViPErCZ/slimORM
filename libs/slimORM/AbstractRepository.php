@@ -34,8 +34,11 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param $key
-	 * @return null|Entity
+	 * @return mixed|null
+	 * @throws \Nette\InvalidArgumentException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
 	 */
 	public function get($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
@@ -45,6 +48,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param Paginator|NULL $paginator
 	 * @return BaseRepository
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function read(Paginator $paginator = NULL) {
@@ -55,12 +59,13 @@ abstract class AbstractRepository {
 	/**
 	 * @param string $columns
 	 * @return BaseRepository
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function select($columns) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		if ($this->containSelectPrimaryKey($columns) === false) {
-			$columns .= "," . $repository->getPrimaryKey();
+			$columns .= ',' . $repository->getPrimaryKey();
 		}
 		return $repository->select($columns);
 	}
@@ -68,14 +73,17 @@ abstract class AbstractRepository {
 	/**
 	 * @param $columns
 	 * @return bool
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
-	protected function containSelectPrimaryKey($columns) {
+	protected function containSelectPrimaryKey($columns): bool {
 		return strpos($columns, $this->entityManager->getRepository($this->entity)->getPrimaryKey()) !== false;
 	}
 
 	/**
 	 * @return bool
+	 * @throws \PDOException
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function save() {
@@ -86,6 +94,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param Entity $entity
 	 * @return BaseRepository
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function push(Entity $entity) {
@@ -96,6 +105,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return Entity[]|NULL
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetchAll() {
@@ -105,6 +115,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return array|Entity
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetch() {
@@ -116,6 +127,7 @@ abstract class AbstractRepository {
 	 * @param string $key
 	 * @param null|string $value
 	 * @return array
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function fetchPairs($key, $value = NULL) {
@@ -125,11 +137,13 @@ abstract class AbstractRepository {
 
 	/**
 	 * @param $condition
-	 * @param array $parameters
+	 * @param $parameters
 	 * @return BaseRepository
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
 	 */
-	public function where($condition, $parameters = array()) {
+	public function where($condition, $parameters): BaseRepository {
 		$repository = $this->entityManager->getRepository($this->entity);
 		return $repository->where($condition, $parameters);
 	}
@@ -137,6 +151,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param $key
 	 * @return $this
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function wherePrimary($key) {
@@ -147,6 +162,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param null|string $column
 	 * @return int
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function count($column = null) {
@@ -156,6 +172,7 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return int|null
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function getLastInsertID() {
@@ -163,6 +180,7 @@ abstract class AbstractRepository {
 	}
 
 	/**
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function clear() {
@@ -172,7 +190,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param int $limit
 	 * @param null $offset
-	 * @return $this
+	 * @return BaseRepository
 	 */
 	public function limit($limit, $offset = NULL) {
 		return $this->entityManager->getRepository($this->entity)->limit($limit, $offset);
@@ -181,6 +199,7 @@ abstract class AbstractRepository {
 	/**
 	 * @param string $columns
 	 * @return BaseRepository
+	 * @throws \ErrorException
 	 * @throws Exceptions\RepositoryException
 	 */
 	public function order($columns) {

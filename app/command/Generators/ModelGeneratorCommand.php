@@ -22,6 +22,7 @@ class ModelGeneratorCommand extends Command {
 
 	/**
 	 *
+	 * @throws \Symfony\Component\Console\Exception\InvalidArgumentException
 	 */
 	protected function configure() {
 		$this->setName('app:generate-model')
@@ -32,25 +33,30 @@ class ModelGeneratorCommand extends Command {
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 * @return int
+	 * @throws \RuntimeException
 	 */
-	protected function execute(InputInterface $input, OutputInterface $output) {
-		$output->writeln("Begin generate...");
+	protected function execute(InputInterface $input, OutputInterface $output): int {
+		$output->writeln('Begin generate...');
 
 		$sqlParser = new SqlParser(WWW_DIR . "/navrhy/slimorm.sql");
 		$tables = $sqlParser->getTables();
 
-		@mkdir(APP_DIR . "/generated/");
-		@mkdir(APP_DIR . "/generated/Base");
+		if (!mkdir(APP_DIR . '/generated/') && !is_dir(APP_DIR . '/generated/')) {
+			throw new \RuntimeException(sprintf('Directory "%s" was not created', APP_DIR . "/generated/"));
+		}
+		if (!mkdir(APP_DIR . '/generated/Base') && !is_dir(APP_DIR . '/generated/Base')) {
+			throw new \RuntimeException(sprintf('Directory "%s" was not created', APP_DIR . '/generated/Base'));
+		}
 
 		foreach ($tables as $table) {
-			$entityGenerator = new EntityGenerator(APP_DIR . "/generated/Base/Entity", $table);
+			$entityGenerator = new EntityGenerator(APP_DIR . '/generated/Base/Entity', $table);
 			$entityGenerator->generate();
 
-			$repositoryGenerator = new RepositoryGenerator(APP_DIR . "/generated/Base/", $table);
+			$repositoryGenerator = new RepositoryGenerator(APP_DIR . '/generated/Base/', $table);
 			$repositoryGenerator->generate();
 		}
 
-		$output->writeln("Finish generate...");
+		$output->writeln('Finish generate...');
 
 		return 0;
 	}

@@ -1,21 +1,23 @@
 <?php
 
 namespace slimORM\Entity;
+
 use Nette\Database\Table\ActiveRow;
 use Nette\MemberAccessException;
-use Nette\Object;
 use Nette\Reflection\ClassType;
+use Nette\SmartObject;
 use Nette\Utils\ObjectMixin;
 use slimORM\Entity\Exception\EntityException;
 use slimORM\EntityManager;
 use slimORM\Reflexion\EntityReflexion;
 
 /**
- * Základní třída pro entitu
- *
- * @author Martin Chudoba
+ * Class Entity
+ * @package slimORM\Entity
  */
-abstract class Entity extends Object {
+abstract class Entity {
+
+	use SmartObject;
 
 	/** @var ActiveRow */
 	protected $row;
@@ -26,15 +28,16 @@ abstract class Entity extends Object {
 	/** @var EntityManager */
 	protected $entityManager;
 
-	/** Konstruktor
-	 * 
-	 * @param ActiveRow $row
+	/**
+	 * Entity constructor.
+	 * @param ActiveRow|null $row
 	 */
 	public function __construct(ActiveRow $row = NULL) {
 		$this->references = array();
 		$this->row = $row;
-		if ($this->row)
+		if ($this->row) {
 			$this->evaluated();
+		}
 	}
 
 	/**
@@ -46,28 +49,28 @@ abstract class Entity extends Object {
 
 
 	/**
-	 * @return ActiveRow
+	 * @return ActiveRow|null
 	 */
 	final public function toRow() {
 		return $this->row;
 	}
 
-    /**
-     * Vrací reference a jejich parametry
-     * @return array
-     * @throws Exception\EntityException
-     */
-    public function getReferences() {
-		if (count($this->references) == 0) {
-			$this->references = EntityReflexion::getReferences(get_class($this));
+	/**
+	 * @return array
+	 * @throws EntityException
+	 */
+    public function getReferences(): array {
+		if (\count($this->references) === 0) {
+			$this->references = EntityReflexion::getReferences(\get_class($this));
 		}
 		return $this->references;
 	}
 
 	/**
 	 * @return array
+	 * @throws EntityException
 	 */
-	public function getLoadedReferences() {
+	public function getLoadedReferences(): array {
 		$this->getReferences();
 		$loadedReferences = array();
 
@@ -265,9 +268,12 @@ abstract class Entity extends Object {
 
 	/**
 	 * @internal
+	 * @throws \Nette\InvalidArgumentException
+	 * @throws EntityException
+	 * @throws \ErrorException
 	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
-	final public function __referencePrepare() {
+	final public function referencePrepare() {
 		if ($this->toRow() === null) {
 			$references = $this->getReferences();
 
@@ -276,7 +282,7 @@ abstract class Entity extends Object {
 				$property = $reference->property;
 				$entities = $this->$property;
 
-				if ($reference->linkage == "OneToMany" && is_array($entities)) {
+				if ($reference->linkage === 'OneToMany' && \is_array($entities)) {
 					$repository = clone $this->entityManager->getRepository($class);
 					$repository->clear();
 
@@ -290,5 +296,3 @@ abstract class Entity extends Object {
 	}
 
 }
-
-?>

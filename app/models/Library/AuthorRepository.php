@@ -65,12 +65,4 @@ class AuthorRepository extends AbstractRepository {
 		return parent::fetch();
 	}
 
-	/**
-	 * @param $condition
-	 * @param array $parameters
-	 * @return AuthorRepository
-	 */
-	public function where($condition, $parameters = array()) {
-		return parent::where($condition, $parameters = array());
-	}
 } 

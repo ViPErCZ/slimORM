@@ -63,13 +63,4 @@ class MyselfRepository extends AbstractRepository {
 	public function fetch() {
 		return parent::fetch();
 	}
-
-	/**
-	 * @param $condition
-	 * @param array $parameters
-	 * @return MyselfRepository
-	 */
-	public function where($condition, $parameters = array()) {
-		return parent::where($condition, $parameters = array());
-	}
 } 

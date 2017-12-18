@@ -1,21 +1,21 @@
 <?php
 
 $phpUnitTest = TRUE; // zajistí, aby se spustil Nette framework (application->run())
-require_once dirname(__FILE__) . "/../../index.php";
+require_once __DIR__ . '/../../index.php';
 
 /**
  * Description of SlimORMTest
  *
  * @author Chudoba Martin
  */
-class SlimORMTest extends BaseDbTest {
+class slimORMUnitTest extends BaseDbUnitTestCase {
 
 	/**
 	 * @return PHPUnit_Extensions_Database_DataSet_ReplacementDataSet
 	 */
 	protected function getDataSet() {
-		$dataSet = $this->createXMLDataSet(dirname(__FILE__).'/_file/model.xml');
-		$replacement = new PHPUnit_Extensions_Database_DataSet_ReplacementDataSet($dataSet);
+		$dataSet = $this->createXMLDataSet(__DIR__ .'/_file/model.xml');
+		$replacement = new \PHPUnit\DbUnit\DataSet\ReplacementDataSet($dataSet);
 		$replacement->addFullReplacement("###NULL###", null);
 		return $replacement;
 	}
@@ -48,7 +48,7 @@ class SlimORMTest extends BaseDbTest {
 
 	// Select method test
 	public function testSelect() {
-		$authorRepository = new AuthorRepository($this->emanager);
+		$authorRepository = new \Model\Library\AuthorRepository($this->emanager);
 		$authors = $authorRepository->read()->select("authorID, name");
 
 		/** @var Author $author */
@@ -61,7 +61,7 @@ class SlimORMTest extends BaseDbTest {
 	 *
 	 */
 	public function testSelectException() {
-		$authorRepository = new AuthorRepository($this->emanager);
+		$authorRepository = new \Model\Library\AuthorRepository($this->emanager);
 		// do not return Exception because primary key automatic added - equal previous test
 		$authors = $authorRepository->read()->select("name");
 

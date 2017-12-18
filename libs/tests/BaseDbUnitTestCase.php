@@ -1,5 +1,7 @@
 <?php
 
+defined('__PHPUNIT_PHAR__');
+
 use Nette\Environment;
 use Nette\Database\Connection;
 use Nette\DI\Container;
@@ -7,18 +9,16 @@ use Nette\DI\Container;
 /**
  * Disables foreign key checks temporarily.
  */
-class TruncateOperation extends \PHPUnit_Extensions_Database_Operation_Truncate {
-	public function execute(\PHPUnit_Extensions_Database_DB_IDatabaseConnection $connection,
-							\PHPUnit_Extensions_Database_DataSet_IDataSet $dataSet) {
+class TruncateOperation extends \PHPUnit\DbUnit\Operation\Truncate {
+	public function execute(\PHPUnit\DbUnit\Database\Connection $connection, \PHPUnit\DbUnit\DataSet\IDataSet $dataSet) {
 		$connection->getConnection()->query("SET foreign_key_checks = 0");
 		parent::execute($connection, $dataSet);
 		$connection->getConnection()->query("SET foreign_key_checks = 1");
 	}
 }
 
-class InsertOperation extends \PHPUnit_Extensions_Database_Operation_Insert {
-	public function execute(\PHPUnit_Extensions_Database_DB_IDatabaseConnection $connection,
-							\PHPUnit_Extensions_Database_DataSet_IDataSet $dataSet) {
+class InsertOperation extends \PHPUnit\DbUnit\Operation\Insert {
+	public function execute(\PHPUnit\DbUnit\Database\Connection $connection, \PHPUnit\DbUnit\DataSet\IDataSet $dataSet) {
 		$connection->getConnection()->query("SET foreign_key_checks = 0");
 		parent::execute($connection, $dataSet);
 		$connection->getConnection()->query("SET foreign_key_checks = 1");
@@ -28,7 +28,10 @@ class InsertOperation extends \PHPUnit_Extensions_Database_Operation_Insert {
 /**
  * Class BaseDbTest
  */
-abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
+abstract class BaseDbUnitTestCase extends \PHPUnit\Framework\TestCase {
+
+	use \PHPUnit\DbUnit\TestCaseTrait;
+
 	/** @var Container */
 	protected $context;
 	
@@ -41,13 +44,19 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	/** @var \slimORM\EntityManager */
 	protected $emanager;
 
-	/** Konstruktor
-	 *
+	/**
+	 * BaseDbTest constructor.
+	 * @param null $name
+	 * @param array $data
+	 * @param string $dataName
 	 */
-	public function __construct() {
+	public function __construct($name = null, array $data = [], $dataName = '') {
+		parent::__construct($name, $data, $dataName);
+
 		$this->context = System::$context;
 	}
-	
+
+
 	/** Vrací připojení na databázi
 	 * 
 	 * @return PHPUnit_Extensions_Database_DB_DefaultDatabaseConnection
@@ -59,14 +68,14 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 
 		return $this->createDefaultDBConnection($this->database->getConnection()->getPdo(), null);
 	}
-	
+
 	/** Abstract metod declaration ************************* */
 	/** **************************************************** */
 
 	protected function getTearDownOperation() {
 		$cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
 
-		return new \PHPUnit_Extensions_Database_Operation_Composite(array(
+		return new \PHPUnit\DbUnit\Operation\Composite(array(
 			new TruncateOperation($cascadeTruncates)
 		));
 	}
@@ -77,7 +86,7 @@ abstract class BaseDbTest extends PHPUnit_Extensions_Database_TestCase {
 	protected function getSetUpOperation () {
 		$cascadeTruncates = true; // If you want cascading truncates, false otherwise. If unsure choose false.
 
-		return new \PHPUnit_Extensions_Database_Operation_Composite(array(
+		return new \PHPUnit\DbUnit\Operation\Composite(array(
 			new TruncateOperation($cascadeTruncates),
 			new InsertOperation()
 		));

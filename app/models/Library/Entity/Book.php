@@ -7,7 +7,7 @@
 
 namespace Model\Library\Entity;
 
-
+use Model\Library\BookAttachmentRepository;
 use slimORM\Entity\Entity;
 
 /**
@@ -52,7 +52,7 @@ class Book extends Entity {
 	/**
 	 * @reference book_has_attachment
 	 * @ManyToMany(targetEntity="Model\Library\Entity\BookAttachment", mappedBy="bookID")
-	 * @var \Model\Library\BookAttachmentRepository
+	 * @var BookAttachmentRepository
 	 */
 	protected $attachments;
 
@@ -101,16 +101,20 @@ class Book extends Entity {
 
 	/**
 	 * @param Attachment $attach
+	 * @throws \Nette\InvalidArgumentException
+	 * @throws \ErrorException
+	 * @throws \slimORM\Entity\Exception\EntityException
+	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
 	public function addAttachment(Attachment $attach) {
 		$bookAttachment = new BookAttachment();
 		$bookAttachment->setAttachment($attach);
-		$this->attachments = $this->entityManager->getRepository('Model\Library\Entity\BookAttachment');
+		$this->attachments = $this->entityManager->getRepository(BookAttachment::class);
 		$this->attachments->push($bookAttachment);
 	}
 
 	/**
-	 * @return \Model\Library\BookAttachmentRepository
+	 * @return BookAttachmentRepository
 	 */
 	public function getAttachments() {
 		return $this->attachments;
@@ -119,40 +123,35 @@ class Book extends Entity {
 	/**
 	 * @return string
 	 */
-	public function getName()
-	{
+	public function getName() {
 		return $this->name;
 	}
 
 	/**
 	 * @return \Model\Library\Entity\Author
 	 */
-	public function getAuthor()
-	{
+	public function getAuthor() {
 		return $this->author;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getBookID()
-	{
+	public function getBookID() {
 		return $this->bookID;
 	}
 
 	/**
 	 * @return \Model\Library\Entity\Library
 	 */
-	public function getLibrary()
-	{
+	public function getLibrary() {
 		return $this->library;
 	}
 
 	/**
 	 * @return int
 	 */
-	public function getLibraryID()
-	{
+	public function getLibraryID() {
 		return $this->libraryID;
 	}
 

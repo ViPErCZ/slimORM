@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 11.12.13
- * Time: 9:09
- */
 
 namespace Model\Library\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -30,34 +24,31 @@ class Attachment extends Entity {
 	protected $name;
 
 	/**
+	 * @return int|null
+	 */
+	public function getAttachmentID(): ?int {
+		return $this->attachmentID;
+	}
+
+	/**
 	 * @param int $attachmentID
 	 */
-	public function setAttachmentID($attachmentID)
-	{
+	public function setAttachmentID($attachmentID): void {
 		$this->attachmentID = $attachmentID;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getName(): ?string {
+		return $this->name;
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name) {
+	public function setName($name): void {
 		$this->name = (string)$name;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getAttachmentID()
-	{
-		return $this->attachmentID;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
 	}
 
 } 

@@ -1,12 +1,9 @@
 <?php
-/**
- * User: Martin
- * Date: 5.12.13
- * Time: 13:11
- */
 
 namespace Model\Library\Entity;
 
+use Model\Library\BookRepository;
+use slimORM\BaseRepository;
 use slimORM\Entity\Entity;
 
 /**
@@ -38,80 +35,65 @@ class Library extends Entity {
 	/**
 	 * @reference book
 	 * @OneToMany(targetEntity="\Model\Library\Entity\Book", mappedBy="libraryID")
-	 * @var \Model\Library\Entity\Book[]
+	 * @var BookRepository
 	 */
 	protected $books;
 
 	/**
 	 * @param Book $book
-	 * @return $this
 	 */
-	public function addBooks(Book $book) {
+	public function addBooks(Book $book): void {
 		$book->setLibrary($this);
 		$this->books[] = $book;
-		return $this;
 	}
 
 	/**
-	 * @param \Model\Library\Entity\Librarian $librarian
-	 * @return $this
+	 * @return string|null
 	 */
-	public function setLibrarian(Librarian $librarian)
-	{
-		$this->librarian = $librarian;
-		return $this;
-	}
-
-	/**
-	 * @param int $libraryID
-	 * @return $this
-	 */
-	public function setLibraryID($libraryID)
-	{
-		$this->libraryID = $libraryID;
-		return $this;
-	}
-
-	/**
-	 * @param string $name
-	 * @return $this
-	 */
-	public function setName($name)
-	{
-		$this->name = (string)$name;
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
+	public function getName(): ?string {
 		return $this->name;
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Librarian
+	 * @param string $name
 	 */
-	public function getLibrarian()
-	{
+	public function setName($name): void {
+		$this->name = (string)$name;
+	}
+
+	/**
+	 * @return Librarian|null
+	 */
+	public function getLibrarian(): ?Librarian {
 		return $this->librarian;
 	}
 
 	/**
-	 * @return \Model\Library\BookRepository
+	 * @param Librarian|null $librarian
 	 */
-	public function getBooks()
-	{
+	public function setLibrarian(Librarian $librarian = null): void {
+		$this->librarian = $librarian;
+	}
+
+	/**
+	 * @return BookRepository|null
+	 */
+	public function getBooks(): ?BaseRepository {
 		return $this->books;
 	}
 
 	/**
-	 * @return int
+	 * @return int|null
 	 */
-	public function getLibraryID()
-	{
+	public function getLibraryID(): ?int {
 		return $this->libraryID;
+	}
+
+	/**
+	 * @param $libraryID
+	 */
+	public function setLibraryID($libraryID): void {
+		$this->libraryID = $libraryID;
 	}
 
 } 

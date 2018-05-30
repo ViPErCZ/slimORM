@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 5.12.13
- * Time: 14:21
- */
 
 namespace Model\Library\Entity;
-
 
 use Model\Contact\Entity\Contact;
 use slimORM\Entity\Entity;
@@ -70,128 +64,114 @@ class Author extends Entity {
 	protected $contact;
 
 	/**
-	 * @param int $bookID
+	 * @return string|null
 	 */
-	public function setBookID($bookID)
-	{
-		$this->bookID = $bookID;
-	}
-
-	/**
-	 * @param int $contactID
-	 */
-	public function setContactID($contactID)
-	{
-		$this->contactID = $contactID;
-	}
-
-	/**
-	 * @param int $languageID
-	 */
-	public function setLanguageID($languageID)
-	{
-		$this->languageID = $languageID;
-	}
-
-	/**
-	 * @param int $authorID
-	 */
-	public function setAuthorID($authorID)
-	{
-		$this->authorID = (int)$authorID;
-	}
-
-	/**
-	 * @param Book $book
-	 */
-	public function setBook(Book $book)
-	{
-		$this->book = $book;
+	public function getName(): ?string {
+		return $this->name;
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name)
-	{
+	public function setName($name): void {
 		$this->name = (string)$name;
 	}
 
 	/**
-	 * @param \Model\Library\Entity\Language $language
+	 * @return int|null
 	 */
-	public function setLanguage($language) {
-		$this->language = $language;
-	}
-
-	/**
-	 * @param \Model\Contact\Entity\Contact $contact
-	 */
-	public function setContact(Contact $contact) {
-		$this->contact = $contact;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getAuthorID()
-	{
+	public function getAuthorID(): ?int {
 		return $this->authorID;
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Book
+	 * @param int $authorID
 	 */
-	public function getBook()
-	{
+	public function setAuthorID($authorID): void {
+		$this->authorID = (int)$authorID;
+	}
+
+	/**
+	 * @return Book|null
+	 */
+	public function getBook(): ?Book {
 		return $this->book;
 	}
 
 	/**
-	 * @return int
+	 * @param Book $book
 	 */
-	public function getBookID()
-	{
+	public function setBook(Book $book): void {
+		$this->book = $book;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getBookID(): ?int {
 		return $this->bookID;
 	}
 
 	/**
-	 * @return \Model\Contact\Entity\Contact
+	 * @param int $bookID
 	 */
-	public function getContact()
-	{
+	public function setBookID($bookID): void {
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @return Contact|null
+	 */
+	public function getContact(): ?Contact {
 		return $this->contact;
 	}
 
 	/**
-	 * @return int
+	 * @param Contact $contact
 	 */
-	public function getContactID()
-	{
+	public function setContact(Contact $contact): void {
+		$this->contact = $contact;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getContactID(): ?int {
 		return $this->contactID;
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Language
+	 * @param int $contactID
 	 */
-	public function getLanguage()
-	{
+	public function setContactID($contactID): void {
+		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @return Language|null
+	 */
+	public function getLanguage(): ?Language {
 		return $this->language;
 	}
 
 	/**
-	 * @return int
+	 * @param Language $language
 	 */
-	public function getLanguageID()
-	{
+	public function setLanguage(Language $language): void {
+		$this->language = $language;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getLanguageID(): ?int {
 		return $this->languageID;
+	}
+
+	/**
+	 * @param int $languageID
+	 */
+	public function setLanguageID($languageID): void {
+		$this->languageID = $languageID;
 	}
 } 

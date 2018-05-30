@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 12.12.13
- * Time: 11:37
- */
 
 namespace Model\Contact\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -37,43 +31,38 @@ class Rel2 extends Entity {
 	protected $rel1;
 
 	/**
-	 * @param int $rel2ID
+	 * @return string|null
 	 */
-	public function setRel2ID($rel2ID)
-	{
-		$this->rel2ID = $rel2ID;
+	public function getName(): ?string {
+		return $this->name;
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name)
-	{
+	public function setName($name): void {
 		$this->name = (string)$name;
 	}
 
 	/**
-	 * @return string
+	 * @return Rel1|null
 	 */
-	public function getName()
-	{
-		return $this->name;
-	}
-
-	/**
-	 * @return \Model\Contact\Entity\Rel1
-	 */
-	public function getRel1()
-	{
+	public function getRel1(): ?Rel1 {
 		return $this->rel1;
 	}
 
 	/**
-	 * @return int
+	 * @return int|null
 	 */
-	public function getRel2ID()
-	{
+	public function getRel2ID(): ?int {
 		return $this->rel2ID;
+	}
+
+	/**
+	 * @param int $rel2ID
+	 */
+	public function setRel2ID($rel2ID): void {
+		$this->rel2ID = $rel2ID;
 	}
 
 } 

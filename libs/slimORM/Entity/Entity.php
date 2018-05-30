@@ -3,10 +3,8 @@
 namespace slimORM\Entity;
 
 use Nette\Database\Table\ActiveRow;
-use Nette\MemberAccessException;
 use Nette\Reflection\ClassType;
-use Nette\SmartObject;
-use Nette\Utils\ObjectMixin;
+use Nette\Utils\ObjectHelpers;
 use slimORM\Entity\Exception\EntityException;
 use slimORM\EntityManager;
 use slimORM\Reflexion\EntityReflexion;
@@ -16,8 +14,6 @@ use slimORM\Reflexion\EntityReflexion;
  * @package slimORM\Entity
  */
 abstract class Entity {
-
-	use SmartObject;
 
 	/** @var ActiveRow */
 	protected $row;
@@ -43,7 +39,7 @@ abstract class Entity {
 	/**
 	 * @param EntityManager $entityManager
 	 */
-	public function setEntityManager(EntityManager $entityManager) {
+	public function setEntityManager(EntityManager $entityManager): void {
 		$this->entityManager = $entityManager;
 	}
 
@@ -51,7 +47,7 @@ abstract class Entity {
 	/**
 	 * @return ActiveRow|null
 	 */
-	final public function toRow() {
+	final public function toRow(): ?ActiveRow {
 		return $this->row;
 	}
 
@@ -88,8 +84,11 @@ abstract class Entity {
 	 * @param $table
 	 * @param $relatedKey
 	 * @param $entityClass
-	 * @return array|callable|null|\slimORM\BaseRepository|instance
-	 * @throws Exception\EntityException
+	 * @return array|callable|mixed|null|\slimORM\BaseRepository|instance
+	 * @throws EntityException
+	 * @throws \ErrorException
+	 * @throws \Throwable
+	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
 	final protected function oneToMany($propertyName, $table, $relatedKey, $entityClass) {
 		if ($this->$propertyName === NULL && $this->row) {
@@ -99,12 +98,14 @@ abstract class Entity {
 				if ($this->entityManager) {
 					return $this->entityManager->getRepository($entityClass)->read()->where($relatedKey, $this->row->getPrimary());
 				} else {
-					throw new EntityException("Please set EntityManager instance to " . get_class($this) . " class.");
+					throw new EntityException('Please set EntityManager instance to ' . \get_class($this) . ' class.');
 				}
-			} else
-				$this->$propertyName = NULL; //array();
-		} else if ($this->$propertyName === NULL && $this->row === NULL)
-			$this->$propertyName = NULL; //array();
+			} else {
+				$this->$propertyName = null; //array();
+			}
+		} else if ($this->$propertyName === NULL && $this->row === NULL) {
+			$this->$propertyName = null; //array();
+		}
 
 		return $this->$propertyName;
 	}
@@ -154,15 +155,13 @@ abstract class Entity {
 	}
 
 	/**
-     * Nastaví hodnoty všem proměnným ze seznamu *read
-     * @param array $values
-     * @throws MemberAccessException
-     */
-    final public function setValues(array $values) {
-		if (is_array($values)) {
+	 * @param array $values
+	 */
+    final public function setValues(array $values): void {
+		if (\is_array($values)) {
 			foreach (array_keys($this->toArray()) as $key) {
 				if (array_key_exists($key, $values)) {
-					ObjectMixin::set($this, $key, $values[$key]);
+					$this->$key = $values[$key];
 				}
 			}
 		}
@@ -171,11 +170,11 @@ abstract class Entity {
 	/**
 	 * @return array
 	 */
-	final public function toArray() {
+	final public function toArray(): array {
 		$arr = array();
 		foreach ($this->getColumns() as $property) {
 			$name = $property['name'];
-			$getter = "get" . ucfirst($name);
+			$getter = 'get' . ucfirst($name);
 			$arr[$name] = $this->$getter();
 		}
 		return $arr;
@@ -184,14 +183,14 @@ abstract class Entity {
 	/**
 	 * @return array
 	 */
-	final public function getColumns() {
-		return EntityReflexion::getColumns(get_class($this));
+	final public function getColumns(): array {
+		return EntityReflexion::getColumns(\get_class($this));
 	}
 	
 	/**
 	 * 
 	 */
-	final protected function evaluated() {
+	final protected function evaluated(): void {
 		if ($this->row) {
 			foreach ($this->row->toArray() as $key => $item) {
 				foreach ($this->getColumns() as $column) {
@@ -208,54 +207,71 @@ abstract class Entity {
 	 * @param $name
 	 * @return array|callable|mixed|null|\slimORM\BaseRepository|instance
 	 * @throws EntityException
+	 * @throws \ErrorException
+	 * @throws \Throwable
+	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
     public function &__get($name) {
-		$getter = "get".ucfirst($name);
-		$reflection = ClassType::from(get_class($this));
+		$getter = 'get' .ucfirst($name);
+		$reflection = ClassType::from(\get_class($this));
 		if ($reflection->hasMethod($getter)) {
 			$reflection->getMethod($getter);
 			$val = $this->$getter();
 			return $val;
 		} else if ($reflection->hasProperty($name)) {
 			$references = $this->getReferences();
-			if ($this->$name === NULL) {
-				if (array_key_exists($name, $references) === TRUE && $this->row) {
-					$val = null;
-					switch($references[$name]->linkage) {
-						case 'OneToMany':
-							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-								$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							} else {
-								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							}
-							break;
-						case 'OneToOne':
-							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-								$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							} else {
-								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							}
-							break;
-						case 'ManyToOne':
-							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-								$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							} else {
-								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							}
-							break;
-						case 'ManyToMany':
-							if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
-								$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							} else {
-								$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
-							}
-							break;
-					}
-					$this->$name = $val;
+			if ($this->$name === null && array_key_exists($name, $references) === true && $this->row) {
+				$val = null;
+				switch($references[$name]->linkage) {
+					case 'OneToMany':
+						if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+							$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						} else {
+							$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						}
+						break;
+					case 'OneToOne':
+						if ($this->row->getTable()->getPrimary(TRUE) === $references[$name]->key) {
+							$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						} else {
+							$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						}
+						break;
+					case 'ManyToOne':
+						if ($this->row->getTable()->getPrimary(true) === $references[$name]->key) {
+							$val = $this->manyToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						} else {
+							$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						}
+						break;
+					case 'ManyToMany':
+						if ($this->row->getTable()->getPrimary(true) === $references[$name]->key) {
+							$val = $this->oneToMany($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						} else {
+							$val = $this->oneToOne($name, $references[$name]->table, $references[$name]->key, $references[$name]->targetEntity);
+						}
+						break;
 				}
+				$this->$name = $val;
 			}
 		}
 		return $this->$name;
+	}
+
+	/**
+	 * @param $name
+	 * @param $value
+	 */
+	public function __set($name, $value) {
+		$setter = 'set' . ucfirst($name);
+		$reflection = ClassType::from(\get_class($this));
+		if ($reflection->hasMethod($setter)) {
+			$this->$setter($value);
+		} else if ($reflection->hasProperty($name)) {
+			$this->$name = $value;
+		} else {
+			ObjectHelpers::strictSet(\get_class($this), $name);
+		}
 	}
 
 	/**
@@ -267,13 +283,12 @@ abstract class Entity {
 	}
 
 	/**
-	 * @internal
-	 * @throws \Nette\InvalidArgumentException
 	 * @throws EntityException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
-	final public function referencePrepare() {
+	final public function referencePrepare(): void {
 		if ($this->toRow() === null) {
 			$references = $this->getReferences();
 

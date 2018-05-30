@@ -1,9 +1,4 @@
 <?php
-/**
- * User: Martin Chudoba
- * Date: 10.3.14
- * Time: 19:07
- */
 
 namespace slimORM;
 
@@ -35,46 +30,55 @@ abstract class AbstractRepository {
 	/**
 	 * @param $key
 	 * @return mixed|null
-	 * @throws \Nette\InvalidArgumentException
 	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function get($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->get($key);
 	}
 
 	/**
-	 * @param Paginator|NULL $paginator
+	 * @param Paginator|null $paginator
 	 * @return BaseRepository
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	public function read(Paginator $paginator = NULL) {
+	public function read(Paginator $paginator = null) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->read($paginator);
 	}
 
 	/**
-	 * @param string $columns
+	 * @param $columns
 	 * @return BaseRepository
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function select($columns) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		if ($this->containSelectPrimaryKey($columns) === false) {
 			$columns .= ',' . $repository->getPrimaryKey();
 		}
+
 		return $repository->select($columns);
 	}
 
 	/**
 	 * @param $columns
 	 * @return bool
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	protected function containSelectPrimaryKey($columns): bool {
 		return strpos($columns, $this->entityManager->getRepository($this->entity)->getPrimaryKey()) !== false;
@@ -82,56 +86,70 @@ abstract class AbstractRepository {
 
 	/**
 	 * @return bool
-	 * @throws \PDOException
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function save() {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->save();
 	}
 
 	/**
 	 * @param Entity $entity
 	 * @return BaseRepository
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function push(Entity $entity) {
 		$repository = $this->entityManager->getRepository($this->entity);
 		$repository->push($entity);
+
 		return $repository;
 	}
 
 	/**
-	 * @return Entity[]|NULL
-	 * @throws \ErrorException
+	 * @return array
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function fetchAll() {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->fetchAll();
 	}
 
 	/**
-	 * @return array|Entity
-	 * @throws \ErrorException
+	 * @return array|mixed
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function fetch() {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->fetch();
 	}
 
 	/**
-	 * @param string $key
-	 * @param null|string $value
+	 * @param $key
+	 * @param null $value
 	 * @return array
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	public function fetchPairs($key, $value = NULL) {
+	public function fetchPairs($key, $value = null) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->fetchPairs($key, $value);
 	}
 
@@ -142,65 +160,83 @@ abstract class AbstractRepository {
 	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	public function where($condition, $parameters): BaseRepository {
+	public function where($condition, $parameters) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->where($condition, $parameters);
 	}
 
 	/**
 	 * @param $key
-	 * @return $this
-	 * @throws \ErrorException
+	 * @return BaseRepository
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function wherePrimary($key) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->wherePrimary($key);
 	}
 
 	/**
-	 * @param null|string $column
+	 * @param null $column
 	 * @return int
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function count($column = null) {
 		$repository = $this->entityManager->getRepository($this->entity);
+
 		return $repository->count($column);
 	}
 
 	/**
 	 * @return int|null
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function getLastInsertID() {
 		return $this->entityManager->getRepository($this->entity)->getLastInsertID();
 	}
 
 	/**
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function clear() {
 		$this->entityManager->getRepository($this->entity)->clear();
 	}
 
 	/**
-	 * @param int $limit
+	 * @param $limit
 	 * @param null $offset
 	 * @return BaseRepository
+	 * @throws Entity\Exception\EntityException
+	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	public function limit($limit, $offset = NULL) {
+	public function limit($limit, $offset = null) {
 		return $this->entityManager->getRepository($this->entity)->limit($limit, $offset);
 	}
 
 	/**
-	 * @param string $columns
+	 * @param $columns
 	 * @return BaseRepository
-	 * @throws \ErrorException
+	 * @throws Entity\Exception\EntityException
 	 * @throws Exceptions\RepositoryException
+	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function order($columns) {
 		return $this->entityManager->getRepository($this->entity)->order($columns);

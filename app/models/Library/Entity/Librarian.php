@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 5.12.13
- * Time: 13:22
- */
 
 namespace Model\Library\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -45,33 +39,29 @@ class Librarian extends Entity {
 	/**
 	 * @param int $librarianID
 	 */
-	public function setLibrarianID($librarianID)
-	{
+	public function setLibrarianID($librarianID): void {
 		$this->librarianID = $librarianID;
 	}
 
 	/**
-	 * @param Library $library
+	 * @param Library|null $library
 	 */
-	public function setLibrary(Library $library)
-	{
+	public function setLibrary(Library $library = null): void {
 		$this->library = $library;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getName(): ?string {
+		return $this->name;
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name)
-	{
+	public function setName($name): void {
 		$this->name = (string)$name;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
 	}
 
 } 

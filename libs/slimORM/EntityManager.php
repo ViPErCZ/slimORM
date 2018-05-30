@@ -1,9 +1,4 @@
 <?php
-/**
- * User: Martin Chudoba
- * Date: 9.3.14
- * Time: 13:09
- */
 
 namespace slimORM;
 
@@ -12,7 +7,7 @@ use Nette\Database\Context;
 use Nette\InvalidArgumentException;
 use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\Parameter;
-use Nette\Utils\FileSystem;
+use slimORM\Entity\Exception\EntityException;
 use slimORM\Exceptions\RepositoryException;
 use slimORM\Reflexion\EntityReflexion;
 
@@ -23,7 +18,7 @@ use slimORM\Reflexion\EntityReflexion;
 final class EntityManager {
 
 	/** string PREFIX */
-	const PREFIX = '__slimORM__';
+	private const PREFIX = '__slimORM__';
 
 	/** @var array */
 	private $repositories;
@@ -51,11 +46,11 @@ final class EntityManager {
 
 	/**
 	 * @param $className
-	 * @return \slimORM\BaseRepository
-	 * @throws \Nette\InvalidArgumentException
+	 * @return BaseRepository
 	 * @throws Entity\Exception\EntityException
 	 * @throws RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
 	public function getRepository($className) : BaseRepository {
 		$genClassName = self::PREFIX . str_replace("\\", '', $className) . 'Repository';
@@ -98,13 +93,12 @@ final class EntityManager {
 	}
 
 	/**
-	 * Generate repository class
 	 * @param $className
-	 * @throws \Nette\InvalidArgumentException
 	 * @throws RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	private function generateRepository($className) {
+	private function generateRepository($className): void {
 		$table = EntityReflexion::getTable($className);
 		if ($table === NULL) {
 			throw new RepositoryException('Entity "' . $className . ' has no annotation "table"');
@@ -150,10 +144,7 @@ final class EntityManager {
 						Cache::FILES => EntityReflexion::getFile($className), // lze uvést i pole souborů
 					));
 				}
-				$res = eval('?><?php ' . $repository);
-				if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
-					throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-				}
+				$this->runSourceCode($repository);
 				$this->repositories[$genClassName] = new $genClassName($this->connection, $this);
 			} else if (!isset($this->repositories[$genClassName])) {
 				$this->repositories[$genClassName] = new $genClassName($this->connection, $this);
@@ -162,14 +153,13 @@ final class EntityManager {
 	}
 
 	/**
-	 * Generate entity class
 	 * @param $className
-	 * @throws \Nette\InvalidArgumentException
-	 * @throws \slimORM\Entity\Exception\EntityException
+	 * @throws EntityException
 	 * @throws RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	private function generateEntity($className)	{
+	private function generateEntity($className): void {
 		$genClassName = self::PREFIX . str_replace("\\", '', $className) . 'Entity';
 		$table = EntityReflexion::getTable($className);
 		if ($table === NULL) {
@@ -205,10 +195,7 @@ final class EntityManager {
 					));
 				}
 				if (!class_exists($genClassName)) {
-					$res = eval('?><?php ' . $repository);
-					if ($res === FALSE && ($error = error_get_last()) && $error['type'] === E_PARSE) {
-						throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
-					}
+					$this->runSourceCode($repository);
 				}
 			}
 		}
@@ -217,7 +204,7 @@ final class EntityManager {
 	/**
 	 * @param ClassType $repository
 	 */
-	private function generateOverrides(ClassType $repository) {
+	private function generateOverrides(ClassType $repository): void {
 		$repository->addMethod('getReferences')
 			->addComment('@return array')
 			->addComment('@throws Exception\EntityException')
@@ -228,8 +215,9 @@ final class EntityManager {
 	/**
 	 * @param array $columns
 	 * @param ClassType $repository
+	 * @throws EntityException
 	 */
-	private function generateGetters(array $columns, ClassType $repository)	{
+	private function generateGetters(array $columns, ClassType $repository): void {
 		foreach ($columns as $column) {
 			$name = $column['name'];
 			$method = $repository->addMethod('get' . ucfirst($name))
@@ -241,6 +229,9 @@ final class EntityManager {
 					$return = implode(' ', $doc);
 					$method->addComment('@return ' . $return);
 					if (PHP_VERSION_ID >= 70100) {
+						if (strpos($return, '|') !== false) {
+							throw new EntityException('Return type for the method "get' . ucfirst($name) . '()" is ambiguous!');
+						}
 						$method->setReturnType($return);
 						$method->setReturnNullable();
 					}
@@ -251,15 +242,15 @@ final class EntityManager {
 	}
 
 	/**
-	 * @param string $className
+	 * @param $className
 	 * @param array $references
-	 * @param ClassType $repository
-	 * @throws \slimORM\Exceptions\RepositoryException
-	 * @throws \slimORM\Entity\Exception\EntityException
-	 * @throws \Nette\InvalidArgumentException
+	 * @param ClassType|null $repository
+	 * @throws Entity\Exception\EntityException
+	 * @throws RepositoryException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 */
-	private function generateReferences($className, array $references, ClassType $repository = NULL) {
+	private function generateReferences($className, array $references, ClassType $repository = NULL): void {
 		foreach ($references as $ref) {
 			$body = $phpDoc = $returnType = '';
 			$genClassName = self::PREFIX . str_replace("\\", '', $ref->targetEntity) . 'Entity';
@@ -308,21 +299,34 @@ final class EntityManager {
 	 * @param array $references
 	 * @param ClassType $repository
 	 */
-	private function generateAddMethods(array $references, ClassType $repository) {
+	private function generateAddMethods(array $references, ClassType $repository): void {
 		foreach ($references as $ref) {
 			if ($ref->linkage === 'OneToMany') {
 				$body = 'if ($this->' . $ref->property . " === null) {\n\t\$this->" . $ref->property . " = clone \$this->entityManager->getRepository('" . $ref->targetEntity . "');\n\t";
-				$body .= "if (\$this->toRow() === null) {\n\t\t\$this->" . $ref->property . "->clear();\n\t}\n}\n\$this->get" . ucfirst($ref->property) . "()->push(\$obj);\nreturn \$this;";
+				$body .= "if (\$this->toRow() === null) {\n\t\t\$this->" . $ref->property . "->clear();\n\t}\n}\n\$this->get" . ucfirst($ref->property) . '()->push($obj);';
 				$parameter = new Parameter('obj');
 				$parameter->setTypeHint($ref->targetEntity);
-				$repository->addMethod('add' . ucfirst($ref->property))
+				$method = $repository->addMethod('add' . ucfirst($ref->property))
 					->addComment('@param ' . $ref->targetEntity . ' $obj')
-					->addComment('@return $this')
 					->addComment('@throws \slimORM\Exceptions\RepositoryException')
 					->setParameters(array($parameter))
 					->setBody($body);
+				if (PHP_VERSION_ID >= 70100) {
+					$method->setReturnType('void');
+				}
 			}
 		}
 
+	}
+
+	/**
+	 * @param $repository
+	 * @throws \ErrorException
+	 */
+	private function runSourceCode($repository): void {
+		$res = eval('?><?php ' . $repository);
+		if ($res === false && ($error = error_get_last()) && $error['type'] === E_PARSE) {
+			throw new \ErrorException($error['message'], 0, $error['type'], $error['file'], $error['line']);
+		}
 	}
 } 

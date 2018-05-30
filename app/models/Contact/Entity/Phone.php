@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 10.12.13
- * Time: 14:26
- */
 
 namespace Model\Contact\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -43,57 +37,52 @@ class Phone extends Entity {
 	protected $contact;
 
 	/**
+	 * @return Contact|null
+	 */
+	public function getContact(): ?Contact {
+		return $this->contact;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getContactID(): ?int {
+		return $this->contactID;
+	}
+
+	/**
 	 * @param int $contactID
 	 */
-	public function setContactID($contactID) {
+	public function setContactID($contactID): void {
 		$this->contactID = $contactID;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getNumber(): ?string {
+		return $this->number;
+	}
+
+	/**
+	 * @param string $number
+	 */
+	public function setNumber($number): void {
+		$this->number = (string)$number;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getPhoneID(): ?int {
+		return $this->phoneID;
 	}
 
 	/**
 	 * @param int $phoneID
 	 */
-	public function setPhoneID($phoneID) {
+	public function setPhoneID($phoneID): void {
 		$this->phoneID = $phoneID;
-	}
-
-
-	/**
-	 * @param string $number
-	 */
-	public function setNumber($number) {
-		$this->number = (string)$number;
-	}
-
-	/**
-	 * @return \Model\Contact\Entity\Contact
-	 */
-	public function getContact()
-	{
-		return $this->contact;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getContactID()
-	{
-		return $this->contactID;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getNumber()
-	{
-		return $this->number;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getPhoneID()
-	{
-		return $this->phoneID;
 	}
 
 } 

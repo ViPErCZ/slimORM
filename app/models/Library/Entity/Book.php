@@ -1,13 +1,9 @@
 <?php
-/**
- * User: Martin
- * Date: 5.12.13
- * Time: 13:31
- */
 
 namespace Model\Library\Entity;
 
 use Model\Library\BookAttachmentRepository;
+use slimORM\BaseRepository;
 use slimORM\Entity\Entity;
 
 /**
@@ -57,56 +53,13 @@ class Book extends Entity {
 	protected $attachments;
 
 	/**
-	 * @param int $libraryID
-	 */
-	public function setLibraryID($libraryID)
-	{
-		$this->libraryID = $libraryID;
-	}
-
-	/**
-	 * @param Author $author
-	 */
-	public function setAuthor(Author $author)
-	{
-		$this->author = $author;
-	}
-
-	/**
-	 * @param int $bookID
-	 */
-	public function setBookID($bookID)
-	{
-		$this->bookID = $bookID;
-	}
-
-	/**
-	 * @param Library $library
-	 */
-	public function setLibrary(Library $library)
-	{
-		$this->library = $library;
-		if ($this->library->toRow()) {
-			$this->libraryID = $library->libraryID;
-		}
-	}
-
-	/**
-	 * @param string $name
-	 */
-	public function setName($name)
-	{
-		$this->name = (string)$name;
-	}
-
-	/**
 	 * @param Attachment $attach
-	 * @throws \Nette\InvalidArgumentException
 	 * @throws \ErrorException
+	 * @throws \Throwable
 	 * @throws \slimORM\Entity\Exception\EntityException
 	 * @throws \slimORM\Exceptions\RepositoryException
 	 */
-	public function addAttachment(Attachment $attach) {
+	public function addAttachment(Attachment $attach): void {
 		$bookAttachment = new BookAttachment();
 		$bookAttachment->setAttachment($attach);
 		$this->attachments = $this->entityManager->getRepository(BookAttachment::class);
@@ -114,45 +67,83 @@ class Book extends Entity {
 	}
 
 	/**
-	 * @return BookAttachmentRepository
+	 * @return BookAttachmentRepository|null
 	 */
-	public function getAttachments() {
+	public function getAttachments(): ?BaseRepository {
 		return $this->attachments;
 	}
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
-	public function getName() {
+	public function getName(): ?string {
 		return $this->name;
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Author
+	 * @param string $name
 	 */
-	public function getAuthor() {
+	public function setName($name): void {
+		$this->name = (string)$name;
+	}
+
+	/**
+	 * @return Author|null
+	 */
+	public function getAuthor(): ?Author {
 		return $this->author;
 	}
 
 	/**
-	 * @return int
+	 * @param Author $author
 	 */
-	public function getBookID() {
+	public function setAuthor(Author $author): void {
+		$this->author = $author;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getBookID(): ?int {
 		return $this->bookID;
 	}
 
 	/**
-	 * @return \Model\Library\Entity\Library
+	 * @param int $bookID
 	 */
-	public function getLibrary() {
+	public function setBookID($bookID): void {
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @return Library|null
+	 */
+	public function getLibrary(): ?Library {
 		return $this->library;
 	}
 
 	/**
-	 * @return int
+	 * @param Library $library
 	 */
-	public function getLibraryID() {
+	public function setLibrary(Library $library): void {
+		$this->library = $library;
+		if ($this->library->toRow()) {
+			$this->libraryID = $library->libraryID;
+		}
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getLibraryID(): ?int {
 		return $this->libraryID;
+	}
+
+	/**
+	 * @param int $libraryID
+	 */
+	public function setLibraryID($libraryID): void {
+		$this->libraryID = $libraryID;
 	}
 
 } 

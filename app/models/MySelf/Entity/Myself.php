@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 12.12.13
- * Time: 13:36
- */
 
 namespace Model\MySelf\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -43,67 +37,59 @@ class Myself extends Entity {
 	protected $child;
 
 	/**
+	 * @return Myself|null
+	 */
+	public function getChild(): ?Myself {
+		return $this->child;
+	}
+
+	/**
+	 * @param Myself $child
+	 */
+	public function setChild(Myself $child = null): void {
+		$this->child = $child;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getChildID(): ?int {
+		return $this->childID;
+	}
+
+	/**
 	 * @param int $childID
 	 */
-	public function setChildID($childID)
-	{
+	public function setChildID($childID): void {
 		$this->childID = $childID;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getMyselfID(): ?int {
+		return $this->myselfID;
 	}
 
 	/**
 	 * @param int $myselfID
 	 */
-	public function setMyselfID($myselfID)
-	{
+	public function setMyselfID($myselfID): void {
 		$this->myselfID = $myselfID;
+	}
+
+	/**
+	 * @return string|null
+	 */
+	public function getName(): ?string {
+		return $this->name;
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name)
-	{
+	public function setName($name): void {
 		$this->name = (string)$name;
-	}
-
-	/**
-	 * @param \Model\MySelf\Entity\Myself $child
-	 */
-	public function setChild(Myself $child = NULL)
-	{
-		$this->child = $child;
-	}
-
-	/**
-	 * @return \Model\MySelf\Entity\Myself
-	 */
-	public function getChild()
-	{
-		return $this->child;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getChildID()
-	{
-		return $this->childID;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getMyselfID()
-	{
-		return $this->myselfID;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName()
-	{
-		return $this->name;
 	}
 
 } 

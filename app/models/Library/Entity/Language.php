@@ -1,12 +1,6 @@
 <?php
-/**
- * User: Martin
- * Date: 10.12.13
- * Time: 13:37
- */
 
 namespace Model\Library\Entity;
-
 
 use slimORM\Entity\Entity;
 
@@ -30,35 +24,31 @@ class Language extends Entity {
 	protected $lang;
 
 	/**
-	 * @param int $languageID
+	 * @return string|null
 	 */
-	public function setLanguageID($languageID)
-	{
-		$this->languageID = $languageID;
+	public function getLang(): ?string {
+		return $this->lang;
 	}
 
 	/**
 	 * @param string $lang
 	 */
-	public function setLang($lang)
-	{
+	public function setLang($lang): void {
 		$this->lang = (string)$lang;
 	}
 
 	/**
-	 * @return string
+	 * @return int|null
 	 */
-	public function getLang()
-	{
-		return $this->lang;
+	public function getLanguageID(): ?int {
+		return $this->languageID;
 	}
 
 	/**
-	 * @return int
+	 * @param int $languageID
 	 */
-	public function getLanguageID()
-	{
-		return $this->languageID;
+	public function setLanguageID($languageID): void {
+		$this->languageID = $languageID;
 	}
 
 } 

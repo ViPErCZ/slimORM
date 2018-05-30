@@ -1,14 +1,9 @@
 <?php
-/**
- * User: Martin
- * Date: 11.12.13
- * Time: 9:12
- */
 
 namespace Model\Library\Entity;
 
-
 use slimORM\Entity\Entity;
+use Model\Library\Entity\Attachment;
 
 /**
  * Class BookAttachment
@@ -55,92 +50,84 @@ class BookAttachment extends Entity {
 	protected $name;
 
 	/**
-	 * @return string
+	 * @return string|null
 	 */
-	public function getName()
-	{
-		$this->attachment = $this->oneToOne("attachment", "attachment", "attachmentID", 'Model\Library\Entity\Attachment');
-		if ($this->attachment instanceof Attachment)
+	public function getName(): ?string {
+		$this->attachment = $this->oneToOne('attachment', 'attachment', 'attachmentID', Attachment::class);
+		if ($this->attachment) {
 			return $this->attachment->name;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getBookID()
-	{
-		return $this->bookID;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getAttachmentID()
-	{
-		return $this->attachmentID;
-	}
-
-	/**
-	 * @return \Model\Library\Entity\Attachment
-	 */
-	public function getAttachment()
-	{
-		return $this->attachment;
-	}
-
-	/**
-	 * @param int $book_has_attachmentID
-	 */
-	public function setBook_has_attachmentID($book_has_attachmentID) {
-		$this->book_has_attachmentID = $book_has_attachmentID;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getBook_has_attachmentID() {
-		return $this->book_has_attachmentID;
-	}
-
-
-	/**
-	 * @param int $attachmentID
-	 */
-	public function setAttachmentID($attachmentID)
-	{
-		$this->attachmentID = $attachmentID;
-	}
-
-	/**
-	 * @param int $bookID
-	 */
-	public function setBookID($bookID)
-	{
-		$this->bookID = $bookID;
+		} else {
+			return null;
+		}
 	}
 
 	/**
 	 * @param string $name
 	 */
-	public function setName($name)
-	{
+	public function setName($name): void {
 		$this->name = $name;
 	}
 
 	/**
-	 * @param \Model\Library\Entity\Attachment $attachment
+	 * @return int|null
 	 */
-	public function setAttachment($attachment)
-	{
+	public function getBookID(): ?int {
+		return $this->bookID;
+	}
+
+	/**
+	 * @param int $bookID
+	 */
+	public function setBookID($bookID): void {
+		$this->bookID = $bookID;
+	}
+
+	/**
+	 * @return int|null
+	 */
+	public function getAttachmentID(): ?int {
+		return $this->attachmentID;
+	}
+
+	/**
+	 * @param int $attachmentID
+	 */
+	public function setAttachmentID($attachmentID): void {
+		$this->attachmentID = $attachmentID;
+	}
+
+	/**
+	 * @return Attachment|null
+	 */
+	public function getAttachment(): ?Attachment {
+		return $this->attachment;
+	}
+
+	/**
+	 * @param Attachment|null $attachment
+	 */
+	public function setAttachment(Attachment $attachment = null): void {
 		$this->attachment = $attachment;
 	}
 
+	/**
+	 * @return int|null
+	 */
+	public function getBook_has_attachmentID(): ?int {
+		return $this->book_has_attachmentID;
+	}
 
 	/**
-	 * @return \Model\Library\Entity\Book
+	 * @param int $book_has_attachmentID
 	 */
-	public function getBook()
-	{
+	public function setBook_has_attachmentID($book_has_attachmentID): void {
+		$this->book_has_attachmentID = $book_has_attachmentID;
+	}
+
+	/**
+	 * @return Book|null
+	 */
+	public function getBook(): ?Book {
 		return $this->book;
 	}
 
